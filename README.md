@@ -2,6 +2,6 @@
 
 Running the program:
 
-card: <value><suit>
+card: \<value\>\<suit\>
 
-python <god's card> '<rule>'
+python \<god's card\> '\<rule\>'
