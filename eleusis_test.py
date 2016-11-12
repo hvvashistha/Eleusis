@@ -25,6 +25,35 @@ import eleusis
     •   iff(test, a, b) — if the test is True, evaluate and return a, else evaluate and return b
 """
 
+def diff_suit(a, b):
+    suita = eleusis.to_function["suit"](a)
+    suitb = eleusis.to_function["suit"](b)
+    print suita + " " + suitb
+    return "CDHS".index(suita) - "CDHS".index(suitb)
+
+def diff_value(a, b):
+    valuea = eleusis.to_function["value"](a)
+    valueb = eleusis.to_function["value"](b)
+    return valuea - valueb
+
+def current(c):
+    return c
+
+def prev1(c, p1):
+    return p1
+
+def prev2(c, p1, p2):
+    return p2
+
+functions = {
+    'attribute': [prev2, prev1, current, eleusis.to_function['suit'], eleusis.to_function['is_royal'],
+                eleusis.to_function['even'], eleusis.to_function['color'], eleusis.to_function['value'],
+                diff_suit, diff_value],
+    'comparative': [eleusis.to_function['equal'], eleusis.to_function['greater']],
+    'logic': ['andf', 'orf', 'notf', 'iff'],
+    'modifier': ['plus1', 'minus1']
+    }
+
 def colored(string, color):
     RED = '\033[91m'
     GREEN = '\033[92m'
@@ -39,7 +68,7 @@ class Card:
             value = eleusis.value_to_number(value)
 
         if not value in Card.values or not suit in Card.suit:
-            pdb.set_trace()
+            print 'Wrong Values'
             raise Exception('Wrong Values')
 
         self.card = value + suit
@@ -124,13 +153,14 @@ class Game:
         self.history = []
         self.deck.shuffle()
         self.players = []
+        self.truthTable = []
         self.playCounter = -1
         self.randomPlay = randomPlay
         self.ruleTree = None
         if rule is not None:
             self.ruleTree = eleusis.parse(rule)
 
-        self.recordPlay(godPlay, True)
+        self.recordPlay([str(godPlay)], True)
 
         for i in range(0, players):
             player = Player()
@@ -151,19 +181,45 @@ class Game:
             return cards
         return correct
 
-    def recordPlay(self, card, correct):
-        self.history.append((card, correct))
+    def recordPlay(self, lastPlays, correct):
+        new_record = []
+        if len(self.history) > 0:
+            for f in functions['attribute']:
+                try:
+                    new_record.append(f(lastPlays[2]))
+                except:
+                    try:
+                        new_record.append(f(lastPlays[2],lastPlays[1]))
+                    except:
+                        new_record.append(f(lastPlays[2],lastPlays[1], lastPlays[0]))
+
+            self.truthTable.append(new_record)
+        self.history.append((lastPlays[-1], correct))
 
     def printRecord(self):
         for record in self.history:
             print colored(record[0], 'green' if record[1] else 'red') + ' |',
+        print ''
+
+
+        for f in functions['attribute']:
+            print f.__name__ + ' |',
+        print "correct"
+        for record in self.truthTable:
+            index = self.truthTable.index(record)
+            for attribute in record:
+                print colored(str(attribute) + '\t|', 'green' if self.history[index + 1][1] else 'red'),
+            print str(self.history[index + 1][1])
         sys.stdout.write('\010\010\n\n')
 
+
     def playNext(self):
-        self.printRecord()
         player = self.nextPlayer()
         play = None
         card = None
+        os.system('clear')
+        self.printRecord()
+        lastPlays = []
         if self.randomPlay:
             play = player.playRandom()
         else:
@@ -172,6 +228,7 @@ class Game:
 
             while card is None:
                 ri = raw_input('Choose Card : ')
+                ri = ri.upper()
                 try:
                     card = Card(ri[:-1], ri[len(ri)-1:])
                 except:
@@ -183,7 +240,6 @@ class Game:
         if self.ruleTree is None:
             correct = True if raw_input('Correct? (y/n) : ') == 'y' else False
         else:
-            lastPlays = []
             historyLen = len(self.history) - 1
 
             for i in range(historyLen, -1, -1):
@@ -202,9 +258,10 @@ class Game:
         if play is None or self.callPlay(player, correct) is None:
             return "Game Stops"
 
-        self.recordPlay(play, correct)
+        self.recordPlay(lastPlays, correct)
         # raw_input()
         os.system('clear')
+        self.printRecord()
         self.playNext()
 
 if __name__ == "__main__":
