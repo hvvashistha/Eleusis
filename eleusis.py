@@ -88,7 +88,7 @@ def plus1(x):
         return number_to_value(value(x) + 1) + suit(x)
     elif is_color(x):
         return "BR"["BR".index(x) - 1]
-
+    
 def minus1(x):
     """Returns the next lower value, suit, or card in a suit;
        must be one. If a color, returns the other color"""
@@ -135,7 +135,7 @@ function_names = ['suit', 'color', 'value', 'is_royal',
 to_function = {'and':andf, 'or':orf, 'not':notf, 'if':iff, 'equals':equal}
 for f in functions:
     to_function[f.__name__] = f
-
+    
 def quote_if_needed(s):
     """If s is not a function, quote it"""
     function_names = map(lambda x: x.__name__, functions)
@@ -159,7 +159,7 @@ def scan(s):
             token += ch
     if token != '':
         yield token
-
+            
 def tree(s):
     """Given a function in the usual "f(a, b)" notation, returns
        a Tree representation of that function, for example,
@@ -193,7 +193,7 @@ def combine(f, args):
         return Tree(f, args[0], args[1], args[2])
     else:
         raise Exception, "Incorrect arguments: {} {}".format(f, str(args))
-
+    
 def parse(s):
     """Converts a string representation of a rule into a Tree"""
     def parse2(s, i):
@@ -210,7 +210,7 @@ def parse(s):
         else:
             return (s[i], i + 1)
     return parse2(list(scan(s)), 0)[0]
-
+        
 class Tree:
 
     def __init__(self, root, first=None, second=None, third=None):
@@ -247,7 +247,7 @@ class Tree:
         if self.right != None: s += ", " + repr(self.right)
         if self.test != None:  s += ", " + repr(self.test)
         return s + ")"
-
+    
 ##    debugging = True
 ##    def evaluate(self, cards):
 ##        """For debugging, uncomment these lines and change
@@ -256,7 +256,7 @@ class Tree:
 ##        after = self.evaluate2(cards)
 ##        if self.debugging: print "Tree: ", before, "-->", after
 ##        return after
-
+    
     def evaluate(self, cards):
         """Evaluate this tree with the given card values"""
         def subeval(expr):
@@ -276,26 +276,26 @@ class Tree:
             f = self.root
             if f not in functions:
                 return f
-
+            
             if f in [suit, color, value, is_royal, minus1, plus1, even, odd]:
                 return f(subeval(self.left))
-
+            
             elif f in [equal, less, greater]:
                 return f(subeval(self.left), subeval(self.right))
-
+            
             elif f == andf:
                 if subeval(self.left):
                     return subeval(self.right)
                 return False
-
+            
             elif f == orf:
                 if subeval(self.left):
                     return True
                 return subeval(self.right)
-
+            
             elif f == notf:
                 return not subeval(self.left)
-
+            
             elif f == iff:
                 if subeval(self.test):
                     return subeval(self.left)
@@ -306,3 +306,5 @@ class Tree:
             print "Expression = ", self
             print " with cards =", cards
             raise
+
+0
