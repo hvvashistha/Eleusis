@@ -28,21 +28,27 @@ import eleusis
 def diff_suit(a, b):
     suita = eleusis.to_function["suit"](a)
     suitb = eleusis.to_function["suit"](b)
-    print suita + " " + suitb
+    # print "Calling diff_Suit"
+    # print suita + " " + suitb
     return "CDHS".index(suita) - "CDHS".index(suitb)
 
 def diff_value(a, b):
     valuea = eleusis.to_function["value"](a)
     valueb = eleusis.to_function["value"](b)
+    # print "Calling diff_value "
+    # print (valuea - valueb)
     return valuea - valueb
 
 def current(c):
+    # print "Current "+c
     return c
 
 def prev1(c, p1):
+    # print "prev1 "+c+" "+p1
     return p1
 
 def prev2(c, p1, p2):
+    # print "prev2 "+c+" "+p1+" "+p2
     return p2
 
 functions = {
@@ -76,6 +82,7 @@ Language.CONSTANT = "CONSTANT"
 # VL1 representation
 # Class Entity represents an entity, an entity records the attributes an object of that entity is can have and their respective domains
 class Selector:
+    print "Inside Selector Class"
     def __init__(self, variableIdentity, variableType, variableDomain, relation, reference, spID = ''):
         # relation : '==', '>', '>=', '<', '<=', '!='
         self.variable = (variableIdentity, variableType, variableDomain)
@@ -220,6 +227,8 @@ class Card:
         #     print 'Wrong Values'
         #     raise Exception('Wrong Values')
         self.value = Selector("value", Selector.INTERVAL, Card.domain["value"], '==', value)
+        print "Calling Selector"
+        str(self.value)
         self.suit = Selector("suit", Selector.CIRCULAR, Card.domain["suit"], '==', suit)
         self.color = Selector("color", Selector.NOMINAL, Card.domain["color"], '==', Card.color[suit])
 
@@ -314,7 +323,7 @@ def colored(string, color):
     return eval(color.upper()) + str(string) + ENDC
 
 class Game:
-    def __init__(self, godPlay, players = 6, randomPlay = False, rule = None):
+    def __init__(self, godPlay, players = 10, randomPlay = False, rule = None):
         self.deck = Deck(6)
         self.history = []
         self.deck.shuffle()
@@ -370,18 +379,205 @@ class Game:
         print ''
 
 
+        correct_list = [];
+        incorrect_list = [];
+
+      
         for f in functions['attribute']:
-            print f.__name__ + ' |',
+            #print "Fishy here"
+            print f.__name__ + '|',
         print "correct"
+        #print self.truthTable
         for record in self.truthTable:
             index = self.truthTable.index(record)
-            for attribute in record:
-                print colored(str(attribute) + '\t|', 'green' if self.history[index + 1][1] else 'red'),
-            print str(self.history[index + 1][1])
-        sys.stdout.write('\010\010\n\n')
+            if str(self.history[index + 1][1])=="True":
+                correct_list.append(record)
+            else:   
+                incorrect_list.append(record)
+            
 
+               
+            for attribute in record:
+                #print type(record)
+                
+                print colored(str(attribute) + '\t|', 'green' if self.history[index + 1][1] else 'red'),
+    
+            
+            print str(self.history[index + 1][1])
+            #print "Correct List : ", correct_list;
+            #print "Incorrect List : ", incorrect_list;
+        sys.stdout.write('\010\010\n\n')
+        #self.det_periodicity(correct_list,incorrect_list);
+        self.det_decomposition(correct_list,incorrect_list)
+
+    def det_decomposition(self,correct_list,incorrect_list):
+        print "Decomposition Algorithm"
+
+        
+        
+        store_dec = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
+        store_dec_2 = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
+        for j in range(3,10):
+            store_dec[j] = {};
+            for i in range(len(correct_list)-1):
+                store_dec[j][correct_list[i][j]] = [];
+        for j in range(3,10):
+            store_dec_2[j] = {};
+            for i in range(len(correct_list)-1):
+                store_dec_2[j][correct_list[i][j]] = [];
+            
+
+        for j in range(3,10):
+            for i in range(len(correct_list)-1):
+                #print correct_list[i][j];
+                store_dec[j][correct_list[i][j]].append(correct_list[i+1]);
+                #print "store_dec[",functions['attribute'][j].__name__,"][",correct_list[i][j],"] :  ",store_dec[j][correct_list[i][j]];
+            #print "***********************************************************************************"
+
+        for j in range(3,10):
+            for k,v in store_dec[j].iteritems():
+                #print len(store_dec[j]);
+                print "store_dec[",functions['attribute'][j].__name__,"][",k,"]:  ",v;
+                # for x in range(3,10):
+                #     print len(v);
+                #     for z in v:
+                        
+                #         print z[x];
+            print "***********************************************************************************"
+        #print store_dec;
+
+            # for i1 in store_dec:
+            #     print i1;
+            # print "---------------------------------------------------"
+
+
+        # cond = False;
+        # i = -1;
+        # list_of_incorrect_after_every_correct = [[] for y in range(len(correct_list))] ;
+        # for record in self.truthTable:
+        #     index = self.truthTable.index(record)
+        #     if (str(self.history[index + 1][1])=="True"):
+        #         i = i + 1;
+
+        #         cond = True;
+        #         #print "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+        #         #print record;
+        #         list_of_incorrect_after_every_correct[i].append(record);
+        #         #print cond;
+        #     else:
+        #         if cond:  
+        #             list_of_incorrect_after_every_correct[i].append(record);
+
+        # for x in list_of_incorrect_after_every_correct:
+        #     print "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+        #     print x;
+
+        # for x in range(0,len(list_of_incorrect_after_every_correct)):
+        #     print "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+        #     if(len(list_of_incorrect_after_every_correct[x])>1):
+        #         for z in range(len(list_of_incorrect_after_every_correct[x][0])):
+        #             print list_of_incorrect_after_every_correct[x][0][z];
+
+        #             for y in range(1,len(list_of_incorrect_after_every_correct[x])):
+        #                 print list_of_incorrect_after_every_correct[x][y];
+
+
+                    
+    def det_periodicity(self,correct_list,incorrect_list):
+        lenG = (len(correct_list)+len(incorrect_list))/2;
+        #print lenG;
+        
+        w, h = lenG,10; 
+        
+        
+        count = [[0 for x in range(10)] for y in range(lenG+1)] 
+        count2 = [[0 for x in range(10)] for y in range(lenG+1)] 
+
+
+        max = -10000000000;
+        var_1 =  set();
+        var_2 = -1;
+        var_3 = -1;
+        var_4 = -1;
+        maxe = -10000000000;
+        
+
+        #print "Determining Correct Periodicity";
+        for a in range(lenG,0,-1):
+            #print "==============================================================================================================================================================="
+            #print "Tuple Length " , a;
+            for j in range(2,10):
+            
+                #print "***************************************************************************************************************************************************************"
+                #print correct_list[i];
+                #print correct_list[i+a];
+                
+                for i in range(0,len(correct_list)-a):
+                    if (correct_list[i][j] == correct_list[i+a][j]):
+                        #print "Checking Attribute : ",functions['attribute'][j].__name__;
+                        count[a][j] = count[a][j] + (1);
+                        
+                    else:
+                        #count[a][j] = count[a][j] - (10);
+                        count2[a][j] = count2[a][j] + (1);
+                        
+                        pass;
+                
+                if(count[a][j]>max):
+                    #print "Matching : ",correct_list[i][j],"  ",correct_list[i+a][j],"   ",count[a][j];
+                    max = count[a][j];
+                    maxe = count2[a][j];
+                    var_2 = a;
+                    var_3 = j;
+                    #var_4 = i;
+                    #print "VAR 4 ",var_4;
+
+                
+                    
+            #print count;
+        for a in range(lenG,0,-1):
+            for i in range(0,len(correct_list)-a):
+                for j in range(2,len(correct_list[var_4])):
+                    if count[var_2][j]==max : 
+                        var_1.add(j);
+
+
+        #print "Maximum Correct Cards : "+str(max);
+        print "Periodicity : "+str(var_2);
+        #print var_1;
+        print functions['attribute'][var_3].__name__;
+        #print var_1;
+        #for f in range(len(functions['attribute'])):
+            #print "Fishy here"
+        print "======================="
+        print "Common attributes";
+        for i1 in var_1:
+            print functions['attribute'][i1].__name__;
+        #print functions[var_1];
+
+        print "Efficiency "
+
+        total_eff = max + maxe;
+        if(total_eff != 0):
+            print (float)(max*100/total_eff);
+        
+
+
+        
+
+
+    def neighborhood(iterable):
+        iterator = iter(iterable)
+        prev_item = None
+        current_item = next(iterator)  # throws StopIteration if empty.
+        for next_item in iterator:
+            yield (prev_item, current_item, next_item)
+            prev_item = current_item
+            current_item = next_item
+        yield (prev_item, current_item, None)
 
     def playNext(self, runCount = None):
+        print "playNext"
         player = self.nextPlayer()
         play = None
         card = None
@@ -444,4 +640,4 @@ class Game:
 
 if __name__ == "__main__":
     game = Game(Card(sys.argv[1][:-1], sys.argv[1][len(sys.argv[1])-1:]), rule=sys.argv[2], randomPlay = True)
-    game.playNext()
+    game.playNext(15)

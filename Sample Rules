@@ -4,7 +4,7 @@ PERIODIC RULES :
 ------------------------------------------------------------------------------------------------------------------------------------------
 If previous card black, then next card red.
 If previous card red, then next card black.
-python eleusis_test.py 3D if(equal(color(previous),R),equal(color(current),B),if(equal(color(previous),B),equal(color(current),R),))
+python eleusis_test.py 3D "if(equal(color(previous),R),equal(color(current),B),if(equal(color(previous),B),equal(color(current),R),))"
 ------------------------------------------------------------------------------------------------------------------------------------------
 If previous card odd, then next card even.
 If previous card even, then next card odd.
