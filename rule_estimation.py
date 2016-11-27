@@ -1,3 +1,5 @@
+print "Inside Rule_Estimation.py";
+
 import sys
 import pdb
 import eleusis
@@ -34,6 +36,7 @@ params = {
 }
 
 def printDesc(event):
+    print "Print Description"
     for desc in event:
         print str(desc if isinstance(event, list) else event[desc]),
     print ''
@@ -176,6 +179,7 @@ def AQ(pos, neg):
 ##################
 
 def emulate_Play(numberOfPlayers = 6):
+    
     rule = sys.argv[2]
     numberOfPlays = 1
     game = GameModule.Game(GameModule.Card(sys.argv[1][:-1], sys.argv[1][len(sys.argv[1])-1:]), rule=sys.argv[2], randomPlay = True, players=numberOfPlayers)
@@ -215,21 +219,3 @@ def emulate_Play(numberOfPlayers = 6):
 
 if __name__ == "__main__":
     emulate_Play()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
