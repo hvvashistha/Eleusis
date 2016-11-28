@@ -444,29 +444,49 @@ class Game:
                     for z in v:
                         l.add(z[x])
                     store_dec_2[j][k].append(l);
-                
+    
+        attribute_preference = {}
+        for i in range(0, 7):
+            attribute_preference[i] = 0
+
+        # iterate through all the dictionaries
         for j in range(3,10):
+            end = False
             union = []
+            intersection = []
             row = 0
             col = 0
             dict_items = store_dec_2[j].items()
-            end = False
-            print "Dictionary" + str(dict_items)
-            print "Dictionary length: " + str(len(dict_items))
-            while row < len(dict_items):
+            # iterate through each of the items in the dictionary
+            while row < len(dict_items) and not end:
                 k, v = dict_items[row]
-                print k
-                print v
+                # print "Key: " + str(k)
+                # print "Values : " + str(v)
+                # print "Row: " + str(row)
+                # print "Col: " + str(col)
                 intersection = v[col].intersection(union);
-                print intersection
+                # print "Union: " + str(union)
+                # print "Intersection: " + str(intersection)
+                # if the length of intersection is 0, go to the next row
                 if len(intersection) == 0:
                     union = v[col].union(union);
+                    row = row + 1
+                    if row == len(dict_items):
+                        attribute_preference[col] = attribute_preference[col] + 1
+                        col = col + 1
+                # if the length of the intersection is not 0
                 else:
                     union = []
                     row = 0
                     col = col + 1
-                row = row + 1
+                    #if this is the last column end the loop
+                    if col == len(v):
+                        end = True
+            #     print "---------------------------------------------"
+            # print "+++++++++++++++++++++++++++++++++++++++"
 
+        print "The following are the attribute preferences: "
+        print str(attribute_preference)
                                
         # for j in range(3,10):
         #     for k,v in store_dec_2[j].iteritems():
@@ -674,4 +694,4 @@ class Game:
 
 if __name__ == "__main__":
     game = Game(Card(sys.argv[1][:-1], sys.argv[1][len(sys.argv[1])-1:]), rule=sys.argv[2], randomPlay = True)
-    game.playNext(15)
+    game.playNext(100)
