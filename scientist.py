@@ -24,6 +24,7 @@ class Scientist:
 		self.set_rule(rule)
 		self.build_all_cards()
 
+
 	#region Main Functions
 
 	#	This function will set the dealer rule using the
@@ -40,7 +41,7 @@ class Scientist:
 			return self.prioritize_rules(self.rules)[0]
 		return None
 	
-	#	This function will display the board state in string representation
+	#	This function will create the board state in string representation
 	#	Returns string for the board
 	def board_state(self):
 		board = "{\n"
@@ -107,21 +108,19 @@ class Scientist:
 	#	Applies constrainsts at this stage.
 	#	Returns the card to play.
 	def get_best_card(self):
-		previous2 = None
-		previous = None
-		current = self.board[-1]
-		if len(self.board > 2):
-			previous2 = self.board[-3]
-		elif len(self.board > 1):
-			previous = self.board[-2]
-		
-		
-		#return self.get_random_card()
+		# previous2 = None
+		# previous = None
+		# current = self.board[-1]
+		# if len(self.board) > 2:
+		# 	previous2 = self.board[-3]
+		# elif len(self.board) > 1:
+		# 	previous = self.board[-2]
+		return self.get_random_card()
 	
 	#	Generates rules that apply to the current state of the board. 
 	#	Only a decent amount will be chosen sicne there could be infinute possible rules.
 	#	Applies constraints at this stage.
-	# 	ODO: Infer Rules
+	# 	TODO: Infer Rules
 	def generate_rules(self):
 		correct_rules = []
 		return correct_rules

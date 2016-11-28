@@ -413,10 +413,10 @@ class Game:
     def det_decomposition(self,correct_list,incorrect_list):
         print "Decomposition Algorithm"
 
-        
-        
         store_dec = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
         store_dec_2 = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
+
+        # INITIALIZING DICTIONARIES TO STORE THE ATTRIBUTES OF NEXT CORRECT ENTRIES FOR EVERY ATTRIBUTE
         for j in range(3,10):
             store_dec[j] = {};
             for i in range(len(correct_list)-1):
@@ -426,8 +426,10 @@ class Game:
             for i in range(len(correct_list)-1):
                 store_dec_2[j][correct_list[i][j]] = [];
             
-
+        # OUTER LOOP TO TRAVERSE THROUGH ALL THE ATTRIBUTES
         for j in range(3,10):
+            # THIS LOOP TO TRAVERSE THROUGH ALL THE CORRECT ENTRIES 
+            # THIS STORES THE NEXT CORRECT ENTRY PERTAINING TO EACH ATTRIBUTE OF THE CURRENT NEXT ENTRY
             for i in range(len(correct_list)-1):
                 #print correct_list[i][j];
                 store_dec[j][correct_list[i][j]].append(correct_list[i+1]);
@@ -436,14 +438,46 @@ class Game:
 
         for j in range(3,10):
             for k,v in store_dec[j].iteritems():
-                #print len(store_dec[j]);
-                print "store_dec[",functions['attribute'][j].__name__,"][",k,"]:  ",v;
-                # for x in range(3,10):
-                #     print len(v);
-                #     for z in v:
-                        
-                #         print z[x];
-            print "***********************************************************************************"
+                for x in range(3,10):
+                    l = set();
+                    #print len(v);
+                    for z in v:
+                        l.add(z[x])
+                    store_dec_2[j][k].append(l);
+                
+        for j in range(3,10):
+            union = []
+            row = 0
+            col = 0
+            dict_items = store_dec_2[j].items()
+            end = False
+            print "Dictionary" + str(dict_items)
+            print "Dictionary length: " + str(len(dict_items))
+            while row < len(dict_items):
+                k, v = dict_items[0]
+                print k
+                print v
+                intersection = v[col].intersection(union);
+                print intersection
+                if len(intersection) == 0:
+                    union = v[col].union(union);
+                else:
+                    union = []
+                    row = 0
+                    col = col + 1
+                row = row + 1
+
+                               
+        # for j in range(3,10):
+        #     for k,v in store_dec_2[j].iteritems():
+        #         print k;
+        #         for m in range(len(v)):
+        #             print v[m];
+        #         print "----------------------"
+        #     print "____________________________________________________________________________________________________________"
+
+            #     print store_dec_2[j][k];
+            # print "**********************************************************************************************************"
         #print store_dec;
 
             # for i1 in store_dec:
