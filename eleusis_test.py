@@ -454,7 +454,7 @@ class Game:
             print "Dictionary" + str(dict_items)
             print "Dictionary length: " + str(len(dict_items))
             while row < len(dict_items):
-                k, v = dict_items[0]
+                k, v = dict_items[row]
                 print k
                 print v
                 intersection = v[col].intersection(union);
