@@ -306,5 +306,3 @@ class Tree:
             print "Expression = ", self
             print " with cards =", cards
             raise
-
-0

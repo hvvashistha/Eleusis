@@ -333,7 +333,7 @@ def colored(string, color):
     return eval(color.upper()) + str(string) + ENDC
 
 class Game:
-    def __init__(self, godPlay, players = 10, randomPlay = False, rule = None):
+    def __init__(self, godPlay, players = 1, randomPlay = False, rule = None):
         self.deck = Deck(6)
         self.history = []
         self.deck.shuffle()
@@ -424,76 +424,81 @@ class Game:
         self.det_decomposition(correct_list,incorrect_list)
 
     def det_decomposition(self,correct_list,incorrect_list):
-        print "=================================================================================================="
-        print "Decomposition Algorithm"
-        final_rule = {}
+        # print "=================================================================================================="
+        # print "Decomposition Algorithm"
+        final_rule = {};
         
         
-        store_dec = [[0 for x in range(len(correct_list)-1)] for y in range(10)]
-        store_dec_2 = [[0 for x in range(len(correct_list)-1)] for y in range(10)]
-        visibility = [[0 for x in range(7)] for y in range(7)]
+        store_dec = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
+        store_dec_2 = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
+        visibility = [[0 for x in range(7)] for y in range(7)];
 
 
         # INITIALIZING DICTIONARIES TO STORE THE ATTRIBUTES OF NEXT CORRECT ENTRIES FOR EVERY ATTRIBUTE
         for j in range(3,10):
-            store_dec[j] = {}
+            store_dec[j] = {};
             for i in range(len(correct_list)-1):
-                store_dec[j][correct_list[i][j]] = []
+                store_dec[j][correct_list[i][j]] = [];
         for j in range(3,10):
-            store_dec_2[j] = {}
+            store_dec_2[j] = {};
             for i in range(len(correct_list)-1):
-                store_dec_2[j][correct_list[i][j]] = []
+                store_dec_2[j][correct_list[i][j]] = [];
             
         # OUTER LOOP TO TRAVERSE THROUGH ALL THE ATTRIBUTES
         for j in range(3,10):
             # THIS LOOP TO TRAVERSE THROUGH ALL THE CORRECT ENTRIES 
             # THIS STORES THE NEXT CORRECT ENTRY PERTAINING TO EACH ATTRIBUTE OF THE CURRENT NEXT ENTRY
             for i in range(len(correct_list)-1):
-                #print correct_list[i][j]
-                store_dec[j][correct_list[i][j]].append(correct_list[i+1])
-                #print "store_dec[",functions['attribute'][j].__name__,"][",correct_list[i][j],"] :  ",store_dec[j][correct_list[i][j]]
+                #print correct_list[i][j];
+                store_dec[j][correct_list[i][j]].append(correct_list[i+1]);
+                #print "store_dec[",functions['attribute'][j].__name__,"][",correct_list[i][j],"] :  ",store_dec[j][correct_list[i][j]];
             #print "***********************************************************************************"
 
         for j in range(3,10):
             for k,v in store_dec[j].iteritems():
                 for x in range(3,10):
-                    l = set()
-                    #print len(v)
+                    l = set();
+                    #print len(v);
                     for z in v:
                         l.add(z[x])
-                    store_dec_2[j][k].append(l)
+                    store_dec_2[j][k].append(l);
                 
 
 
         for j in range(3,10):
-            # domain_suit = set(['H', 'S', 'C', 'D'])
-            # domain_isroyal = set([False, True])
-            # domain_even = set([False, True])
-            # domain_color = set(['R', 'B'])
-            # domain_value = set([1,2,3, 4,5, 6,7, 8,9,11,13, 10, 12])
+            # domain_suit = set(['H', 'S', 'C', 'D']);
+            # domain_isroyal = set([False, True]);
+            # domain_even = set([False, True]);
+            # domain_color = set(['R', 'B']);
+            # domain_value = set([1,2,3, 4,5, 6,7, 8,9,11,13, 10, 12]);
             
             #----------------------------
-            attr_suit = []
-            attr_isroyal = []
-            attr_even = []
-            attr_color = []
-            attr_value = []
-            attr_diff_suit = []
-            attr_diff_value = []
+            attr_suit = [];
+            attr_isroyal = [];
+            attr_even = [];
+            attr_color = [];
+            attr_value = [];
+            attr_diff_suit = [];
+            attr_diff_value = [];
             for k,v in store_dec_2[j].iteritems():
-                
+                # print "----------------------------------------------------"
+                # print "K : ",k
+                # print "V : ",v
+                # print "J : ",j
                 if(attr_suit == []):
-                    attr_suit = v[0]
+                    attr_suit = v[0];
                 else:
-                    # print "Suit Intersection : ",v[0].intersection(attr_suit)
-                    if len(v[0].intersection(attr_suit))==0:
-                        attr_suit=attr_suit.union(v[0])
-                        # print k
-                        # print "len(v[0].intersection(attr_suit))==0",v[0]
-                        # print visibility[j-3]
+                    # print "Suit Intersection : ",v[0].intersection(attr_suit);
+                    # print attr_suit.union(v[0])
 
-                    elif len(v[0].intersection(attr_suit))>0 or len(attr_suit.union(v[0]))==4:
-                        visibility[j-3][0] = 1
+                    if len(v[0].intersection(attr_suit))==0:
+                        attr_suit=attr_suit.union(v[0]);
+                        # print k;
+                        # print "len(v[0].intersection(attr_suit))==0",v[0];
+                        # print visibility[j-3];
+
+                    elif len(v[0].intersection(attr_suit))>0:
+                        visibility[j-3][0] = 1;
 
                         
 
@@ -501,107 +506,117 @@ class Game:
                 
                 #------------------------------------------------------------------------------------------
                 if(attr_isroyal == []):
-                    attr_isroyal = v[1]
+                    attr_isroyal = v[1];
                 else:
-                    # print "IsRoyal Intersection : ",v[1].intersection(attr_isroyal)
+                    # print "IsRoyal Intersection : ",v[1].intersection(attr_isroyal);
                     if len(v[1].intersection(attr_isroyal))==0:
-                        attr_isroyal=attr_isroyal.union(v[1])
+                        attr_isroyal=attr_isroyal.union(v[1]);
                         
                     elif len(v[1].intersection(attr_isroyal))>0 or len(attr_isroyal.union(v[1]))==2:
-                        visibility[j-3][1] = 1
+                        visibility[j-3][1] = 1;
                         
                 
                 #------------------------------------------------------------------------------------------
                 if(attr_even == []):
-                    attr_even = v[2]
+                    attr_even = v[2];
                 else:
-                    # print "Even Intersection : ",v[2].intersection(attr_even)
+                    # print "Even Intersection : ",v[2].intersection(attr_even);
                     if len(v[2].intersection(attr_even))==0:
-                        attr_even=attr_even.union(v[2])
+                        attr_even=attr_even.union(v[2]);
                                                     
                     elif len(v[2].intersection(attr_even))>0 or len(attr_even.union(v[2]))==2:
-                        visibility[j-3][2] = 1
+                        visibility[j-3][2] = 1;
                         
                 
                 #------------------------------------------------------------------------------------------
                 if(attr_color == []):
-                    attr_color = v[3]
+                    attr_color = v[3];
                 else:
-                    # print "Color Intersection : ",v[3].intersection(attr_color)
+                    # print "Color Intersection : ",v[3].intersection(attr_color);
                     if len(v[3].intersection(attr_color))==0:
-                        attr_color=attr_color.union(v[3])
+                        attr_color=attr_color.union(v[3]);
                                                     
                     elif len(v[3].intersection(attr_color))>0 or len(attr_color.union(v[3]))==2:
-                        visibility[j-3][3] = 1
+                        visibility[j-3][3] = 1;
                         
 
                 #------------------------------------------------------------------------------------------
                 if(attr_value == []):
-                    attr_value = v[4]
+                    attr_value = v[4];
                 else:
-                    # print "Value Intersection : ",v[4].intersection(attr_value)
+                    # print "Value Intersection : ",v[4].intersection(attr_value);
                     if len(v[4].intersection(attr_value))==0:
-                        attr_value=attr_value.union(v[4])
+                        attr_value=attr_value.union(v[4]);
                             
                     elif len(v[4].intersection(attr_value))>0:
-                        visibility[j-3][4] = 1
+                        visibility[j-3][4] = 1;
                         
                 
                 #------------------------------------------------------------------------------------------
                 if(attr_diff_suit == []):
-                    attr_diff_suit = v[5]
+                    attr_diff_suit = v[5];
                 else:
-                    # print "Diff Suit Intersection : ",v[5].intersection(attr_diff_suit)
+                    # print "Diff Suit Intersection : ",v[5].intersection(attr_diff_suit);
                     if len(v[5].intersection(attr_diff_suit))==0:
-                        attr_diff_suit=attr_diff_suit.union(v[5])
+                        attr_diff_suit=attr_diff_suit.union(v[5]);
                         
                     elif len(v[5].intersection(attr_diff_suit))>0:
-                        visibility[j-3][5] = 1
+                        visibility[j-3][5] = 1;
                         
                 
                 #------------------------------------------------------------------------------------------
                 if(attr_diff_value == []):
-                    attr_diff_value = v[6]
+                    attr_diff_value = v[6];
                 else:
-                    # print "Diff Value Intersection : ",v[6].intersection(attr_diff_value)
+                    # print "Diff Value Intersection : ",v[6].intersection(attr_diff_value);
                     if len(v[6].intersection(attr_diff_value))==0:
-                        attr_diff_value=attr_diff_value.union(v[6])
+                        attr_diff_value=attr_diff_value.union(v[6]);
                         
                     elif len(v[6].intersection(attr_diff_value))>0:
-                        visibility[j-3][6] = 1
+                        visibility[j-3][6] = 1;
+            # print visibility;
         
-        min = 900000  
-        min_x = 0  
-        min_x_index = 0              
-        print visibility
+        min = 900000;  
+        min_x = 0;  
+        min_x_index = 0;              
+        # print visibility;
         for x1 in visibility:
-            count = 0
+            count = 0;
             for y1 in x1:
                 if y1 == 1:
-                    count = count + 1
+                    count = count + 1;
             if(count<min):
-                min = count
-                min_x = x1
-                min_x_index = visibility.index(x1)
+                min = count;
+                min_x = x1;
+                min_x_index = visibility.index(x1);
         
 
-        print "min_x",min_x
-        print "min_x_index",min_x_index
+        # print "min_x",min_x;
+        # print "min_x_index",min_x_index;
 
         
 
         for k1,v1 in store_dec_2[min_x_index+3].iteritems():
-            #print k1
-            var_attribute = functions['attribute'][min_x_index+3].__name__
-            new_key = var_attribute +"_"+ str(k1)
-            # print new_key
+            #print k1;
+            var_attribute = functions['attribute'][min_x_index+3].__name__;
+            new_key = var_attribute +"_"+ str(k1);
+            # print new_key;
             # print type(new_key)
-            final_rule[new_key]=[]
+            final_rule[new_key]=[];
             for i2 in range(len(v1)):
                 if min_x[i2] == 0:
-                    final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]))
-        print final_rule
-        self.guessed_rule = self.create_final_rule(final_rule)   
+                    if (i2==0 and len(v1[i2])<4):
+                        final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
+                    elif (i2==1 and len(v1[i2])<2):
+                        final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
+                    elif (i2==2 and len(v1[i2])<2):
+                        final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
+                    elif (i2==3 and len(v1[i2])<2):
+                        final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
+                    elif (i2>3 and i2<5):
+                        final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
+        print final_rule;
+        self.guessed_rule = self.create_final_rule(final_rule)  
 
     def create_final_rule(self,final_rule):
         rule = ""
@@ -799,7 +814,9 @@ class Game:
 
 if __name__ == "__main__":
     game = Game(Card(sys.argv[1][:-1], sys.argv[1][len(sys.argv[1])-1:]), rule=sys.argv[2], randomPlay = True)
-    game.playNext(100)
+    game.playNext(200)
+    print "\nThe rule that was guessed is: "
+    print game.guessed_rule
     scientist = scientist.Scientist(game.history, game.provided_rule, game.guessed_rule)
     print "\nThe rule that was guessed is: "
     print game.guessed_rule

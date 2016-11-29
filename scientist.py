@@ -30,7 +30,7 @@ class Scientist:
 		self.set_rule(dealer_rule, player_rule)
 		self.build_all_cards()
 		for card in cards:
-			self.play(str(card[0]))
+			self.play(str(card[0]), self.dealer_rule)
 		print "The Board state at the end is: "
 		print self.board_state()
 
@@ -64,7 +64,7 @@ class Scientist:
 	#	This function will play a card and determine if it satisfies the rule.
 	#	This also updates the board_state.
 	#	Returns true or false
-	def play(self, card):
+	def play(self, card, rule):
 		self.total_moves = self.total_moves + 1
 		last_three = []
 		if len(self.board) > 0:
@@ -77,7 +77,7 @@ class Scientist:
 			last_three.insert(0, self.board[-2][0])
 		last_three.append(card)
 		if len(self.board) > 0:
-			if self.dealer_rule.evaluate(last_three):
+			if rule.evaluate(last_three):
 				self.board.append((card, []))
 				return True
 			else:
@@ -115,8 +115,19 @@ class Scientist:
 		cards = []
 		for card in self.board:
 			cards.append(card[0])
-		if not self.player_rule.evaluate([cards[-3], cards[-2], cards[-1]]):
+		original_board = list(self.board)
+		self.board = []
+		# play with the player rule applied
+		for card in original_board:
+			self.play(card[0], self.player_rule)
+		print self.board_state()
+		# add to the score if there is a difference
+		correct_dealer = len(original_board)
+		correct_player = len(self.board)
+		efficiency = (correct_player / float(correct_dealer)) * 100.0
+		if not(correct_dealer == correct_player):
 			score = score + 30
+		print "\nEfficiency: " + str(efficiency)
 		return score
 
 	#end Main Functions
