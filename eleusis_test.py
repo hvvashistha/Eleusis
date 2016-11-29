@@ -92,7 +92,7 @@ Language.CONSTANT = "CONSTANT"
 # VL1 representation
 # Class Entity represents an entity, an entity records the attributes an object of that entity is can have and their respective domains
 class Selector:
-    print "Inside Selector Class"
+    #print "Inside Selector Class"
     def __init__(self, variableIdentity, variableType, variableDomain, relation, reference, spID = ''):
         # relation : '==', '>', '>=', '<', '<=', '!='
         self.variable = (variableIdentity, variableType, variableDomain)
@@ -237,7 +237,7 @@ class Card:
         #     print 'Wrong Values'
         #     raise Exception('Wrong Values')
         self.value = Selector("value", Selector.INTERVAL, Card.domain["value"], '==', value)
-        print "Calling Selector"
+        #print "Calling Selector"
         str(self.value)
         self.suit = Selector("suit", Selector.CIRCULAR, Card.domain["suit"], '==', suit)
         self.color = Selector("color", Selector.NOMINAL, Card.domain["color"], '==', Card.color[suit])
@@ -320,9 +320,10 @@ class Player:
             return None
 
     def showCards(self):
-        for card in self.cards:
-            print str(card) + ", ",
-        sys.stdout.write('\010\010\n')
+        pass
+        # for card in self.cards:
+        #     print str(card) + ", ",
+        # sys.stdout.write('\010\010\n')
 
 def colored(string, color):
     RED = '\033[91m'
@@ -367,7 +368,7 @@ class Game:
             if cards is None or len(cards) < 5:
                 return None
             player.addCards(cards)
-            print "Penalty cards : " + str(len(cards))
+            #print "Penalty cards : " + str(len(cards))
             return cards
         return correct
 
@@ -407,19 +408,16 @@ class Game:
                 correct_list.append(record)
             else:   
                 incorrect_list.append(record)
-            
 
-               
-            for attribute in record:
-                #print type(record)
-                
-                print colored(str(attribute) + '\t|', 'green' if self.history[index + 1][1] else 'red'),
-    
+            # for attribute in record:
+            #     #print type(record)
+            #     print colored(str(attribute) + '\t|', 'green' if self.history[index + 1][1] else 'red'),
             
-            print str(self.history[index + 1][1])
+            # print str(self.history[index + 1][1])
             #print "Correct List : ", correct_list
             #print "Incorrect List : ", incorrect_list
-        sys.stdout.write('\010\010\n\n')
+
+        # sys.stdout.write('\010\010\n\n')
         #self.det_periodicity(correct_list,incorrect_list)
         self.det_decomposition(correct_list,incorrect_list)
 
@@ -428,11 +426,9 @@ class Game:
         # print "Decomposition Algorithm"
         final_rule = {};
         
-        
         store_dec = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
         store_dec_2 = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
         visibility = [[0 for x in range(7)] for y in range(7)];
-
 
         # INITIALIZING DICTIONARIES TO STORE THE ATTRIBUTES OF NEXT CORRECT ENTRIES FOR EVERY ATTRIBUTE
         for j in range(3,10):
@@ -463,8 +459,6 @@ class Game:
                         l.add(z[x])
                     store_dec_2[j][k].append(l);
                 
-
-
         for j in range(3,10):
             # domain_suit = set(['H', 'S', 'C', 'D']);
             # domain_isroyal = set([False, True]);
@@ -615,7 +609,7 @@ class Game:
                         final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
                     elif (i2>3 and i2<5):
                         final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
-        print final_rule;
+        #print final_rule;
         self.guessed_rule = self.create_final_rule(final_rule)  
 
     def create_final_rule(self,final_rule):
@@ -624,7 +618,7 @@ class Game:
             rule = rule + self.process_key(k)
             rule = rule + self.process_values(v)
             rule = rule + ","              
-        rule = rule.strip(',')
+        rule = rule.strip(',') + "))"
         return rule
 
     def process_key(self,key):
@@ -654,7 +648,7 @@ class Game:
                 rule_string = rule_string.strip(',') + "),"
             else:
                 rule_string = rule_string + "equal(" + str(str1[0]) + "(current)," + str(str1[1] + "),")
-        rule_string = rule_string.strip(',') + ")"
+        rule_string = rule_string.strip(',')
         return rule_string
 
     def det_periodicity(self,correct_list,incorrect_list):
@@ -736,10 +730,6 @@ class Game:
             print (float)(max*100/total_eff)
         
 
-
-        
-
-
     def neighborhood(iterable):
         iterator = iter(iterable)
         prev_item = None
@@ -751,7 +741,7 @@ class Game:
         yield (prev_item, current_item, None)
 
     def playNext(self, runCount = None):
-        print "playNext"
+        #print "playNext"
         player = self.nextPlayer()
         play = None
         card = None
@@ -759,10 +749,11 @@ class Game:
         self.printRecord()
         lastPlays = []
         events = []
+        # play the cards randomly for now
         if self.randomPlay:
             play = player.playRandom()
         else:
-            print "Player " + str(self.players.index(player) + 1) + " : "
+            #print "Player " + str(self.players.index(player) + 1) + " : "
             player.showCards()
 
             while card is None:
@@ -774,7 +765,7 @@ class Game:
                     pass
             play = player.playCard(card)
 
-        print "Player " + str(self.players.index(player) + 1) + " : " + str(play)
+        #print "Player " + str(self.players.index(player) + 1) + " : " + str(play)
 
         if self.ruleTree is None:
             correct = True if raw_input('Correct? (y/n) : ') == 'y' else False
@@ -812,12 +803,14 @@ class Game:
 
         return [(events, correct)] + nextPlay
 
+
 if __name__ == "__main__":
+    print "Calculating..."
     game = Game(Card(sys.argv[1][:-1], sys.argv[1][len(sys.argv[1])-1:]), rule=sys.argv[2], randomPlay = True)
     game.playNext(200)
-    print "\nThe rule that was guessed is: "
-    print game.guessed_rule
+    print "\nThe rule that was guessed after 200 moves is: "
+    print game.guessed_rule + "\n"
     scientist = scientist.Scientist(game.history, game.provided_rule, game.guessed_rule)
-    print "\nThe rule that was guessed is: "
-    print game.guessed_rule
     print "\nThe total score for the player is: " + str(scientist.score())
+    print "\nThe rule that was guessed after 200 moves is: "
+    print game.guessed_rule

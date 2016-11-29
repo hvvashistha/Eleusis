@@ -31,7 +31,7 @@ class Scientist:
 		self.build_all_cards()
 		for card in cards:
 			self.play(str(card[0]), self.dealer_rule)
-		print "The Board state at the end is: "
+		print "The Board State (using the dealer rule) is: "
 		print self.board_state()
 
 	#region Main Functions
@@ -120,7 +120,8 @@ class Scientist:
 		# play with the player rule applied
 		for card in original_board:
 			self.play(card[0], self.player_rule)
-		print self.board_state()
+		print "\nThe Board State (using the player rule and only playing the correct cards for the dealer rule): "
+		print self.board_state() + "\n"
 		# add to the score if there is a difference
 		correct_dealer = len(original_board)
 		correct_player = len(self.board)
