@@ -374,19 +374,19 @@ class Game:
         self.history.append((lastPlays[-1], correct))
 
     def printRecord(self):
-        for record in self.history:
-            print colored(record[0], 'green' if record[1] else 'red') + ' |',
-        print ''
+        # for record in self.history:
+        #     print colored(record[0], 'green' if record[1] else 'red') + ' |',
+        # print ''
 
 
         correct_list = [];
         incorrect_list = [];
 
       
-        for f in functions['attribute']:
-            #print "Fishy here"
-            print f.__name__ + '|',
-        print "correct"
+        # for f in functions['attribute']:
+        #     #print "Fishy here"
+        #     print f.__name__ + '|',
+        # print "correct"
         #print self.truthTable
         for record in self.truthTable:
             index = self.truthTable.index(record)
@@ -411,6 +411,7 @@ class Game:
         self.det_decomposition(correct_list,incorrect_list)
 
     def det_decomposition(self,correct_list,incorrect_list):
+        print "=================================================================================================="
         print "Decomposition Algorithm"
         final_rule = {};
         
@@ -452,6 +453,13 @@ class Game:
 
 
         for j in range(3,10):
+            # domain_suit = set(['H', 'S', 'C', 'D']);
+            # domain_isroyal = set([False, True]);
+            # domain_even = set([False, True]);
+            # domain_color = set(['R', 'B']);
+            # domain_value = set([1,2,3, 4,5, 6,7, 8,9,11,13, 10, 12]);
+            
+            #----------------------------
             attr_suit = [];
             attr_isroyal = [];
             attr_even = [];
@@ -460,20 +468,22 @@ class Game:
             attr_diff_suit = [];
             attr_diff_value = [];
             for k,v in store_dec_2[j].iteritems():
-                # print store_dec_2[j].keys().index(k);
-                # print "J : ",j;
-                # print "K : ",k;
-                # print "V : ",v;
-                # print "___________________________________________"
+                
                 if(attr_suit == []):
                     attr_suit = v[0];
                 else:
                     # print "Suit Intersection : ",v[0].intersection(attr_suit);
                     if len(v[0].intersection(attr_suit))==0:
                         attr_suit=attr_suit.union(v[0]);
-                        # print "Suit Union : ",attr_suit;
-                    elif len(v[0].intersection(attr_suit))>0:
+                        # print k;
+                        # print "len(v[0].intersection(attr_suit))==0",v[0];
+                        # print visibility[j-3];
+
+                    elif len(v[0].intersection(attr_suit))>0 or len(attr_suit.union(v[0]))==4:
                         visibility[j-3][0] = 1;
+
+                        
+
                         
                 
                 #------------------------------------------------------------------------------------------
@@ -483,8 +493,8 @@ class Game:
                     # print "IsRoyal Intersection : ",v[1].intersection(attr_isroyal);
                     if len(v[1].intersection(attr_isroyal))==0:
                         attr_isroyal=attr_isroyal.union(v[1]);
-                        # print "isRoyal Union : ",attr_isroyal;
-                    elif len(v[1].intersection(attr_isroyal))>0:
+                        
+                    elif len(v[1].intersection(attr_isroyal))>0 or len(attr_isroyal.union(v[1]))==2:
                         visibility[j-3][1] = 1;
                         
                 
@@ -495,8 +505,8 @@ class Game:
                     # print "Even Intersection : ",v[2].intersection(attr_even);
                     if len(v[2].intersection(attr_even))==0:
                         attr_even=attr_even.union(v[2]);
-                        # print "Even Union : ",attr_even;
-                    elif len(v[2].intersection(attr_even))>0:
+                                                    
+                    elif len(v[2].intersection(attr_even))>0 or len(attr_even.union(v[2]))==2:
                         visibility[j-3][2] = 1;
                         
                 
@@ -507,8 +517,8 @@ class Game:
                     # print "Color Intersection : ",v[3].intersection(attr_color);
                     if len(v[3].intersection(attr_color))==0:
                         attr_color=attr_color.union(v[3]);
-                        # print "Color Union : ",attr_color;
-                    elif len(v[3].intersection(attr_color))>0:
+                                                    
+                    elif len(v[3].intersection(attr_color))>0 or len(attr_color.union(v[3]))==2:
                         visibility[j-3][3] = 1;
                         
 
@@ -519,7 +529,7 @@ class Game:
                     # print "Value Intersection : ",v[4].intersection(attr_value);
                     if len(v[4].intersection(attr_value))==0:
                         attr_value=attr_value.union(v[4]);
-                        # print "Value Union : ",attr_value;
+                            
                     elif len(v[4].intersection(attr_value))>0:
                         visibility[j-3][4] = 1;
                         
@@ -531,7 +541,7 @@ class Game:
                     # print "Diff Suit Intersection : ",v[5].intersection(attr_diff_suit);
                     if len(v[5].intersection(attr_diff_suit))==0:
                         attr_diff_suit=attr_diff_suit.union(v[5]);
-                        # print "Diff Suit Union : ",attr_diff_suit;
+                        
                     elif len(v[5].intersection(attr_diff_suit))>0:
                         visibility[j-3][5] = 1;
                         
@@ -543,7 +553,7 @@ class Game:
                     # print "Diff Value Intersection : ",v[6].intersection(attr_diff_value);
                     if len(v[6].intersection(attr_diff_value))==0:
                         attr_diff_value=attr_diff_value.union(v[6]);
-                        # print "Diff value Union : ",attr_diff_value;
+                        
                     elif len(v[6].intersection(attr_diff_value))>0:
                         visibility[j-3][6] = 1;
         
@@ -562,8 +572,8 @@ class Game:
                 min_x_index = visibility.index(x1);
         
 
-        # print min_x;
-        # print min_x_index;
+        print "min_x",min_x;
+        print "min_x_index",min_x_index;
 
         
 
@@ -585,8 +595,8 @@ class Game:
 
     def create_final_rule(self,final_rule):
         for k,v in final_rule.items():
-            pass;
-            #print self.process_key(k);
+            
+            print self.process_key(k);
             #print "and("+self.process_key(k);
             #print v;               
     
