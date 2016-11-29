@@ -1,5 +1,22 @@
 # -*- coding: utf-8 -*-
 
+# Project Phase 1
+# CMSC 671
+
+#   Sabin Raj Tiwari
+#   Shantanu Sengupta
+#   Harsh Vashishta
+#   Sushant Chaudhari
+
+# References for the code
+#   https://docs.python.org/
+#   https://docs.python.org/2.7/tutorial/datastructures.html
+#   https://docs.python.org/2/library/itertools.html#itertools.product
+#   https://www.tutorialspoint.com/python/python_command_line_arguments.htm
+#   http://stackoverflow.com/questions/1228299/change-one-character-in-a-string-in-python
+#   http://stackoverflow.com/questions/354038/how-do-i-check-if-a-string-is-a-number-float-in-python
+
+
 import random
 import eleusis
 import eleusis_test

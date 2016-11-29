@@ -1,3 +1,11 @@
+# Project Phase 1
+# CMSC 671
+
+#   Sabin Raj Tiwari
+#   Shantanu Sengupta
+#   Harsh Vashishta
+#   Sushant Chaudhari
+
 # Eleusis
 
 Running the program:

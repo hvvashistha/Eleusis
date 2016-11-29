@@ -1,5 +1,14 @@
 # -*- coding: utf-8 -*-
 
+# Project Phase 1
+# CMSC 671
+
+#   Sabin Raj Tiwari
+#   Shantanu Sengupta
+#   Harsh Vashishta
+#   Sushant Chaudhari
+
+
 # References for the code
 #   https://docs.python.org/
 #   https://docs.python.org/2.7/tutorial/datastructures.html
@@ -7,6 +16,7 @@
 #   https://www.tutorialspoint.com/python/python_command_line_arguments.htm
 #   http://stackoverflow.com/questions/1228299/change-one-character-in-a-string-in-python
 #   http://stackoverflow.com/questions/354038/how-do-i-check-if-a-string-is-a-number-float-in-python
+#   https://docs.python.org/2/library/datetime.html
 
 import sys
 import os
@@ -16,6 +26,7 @@ import pdb
 import eleusis
 import scientist
 import ast
+import datetime
 
 """
     •   suit(card) — returns the suit of a card, as a single letter: C, D, H, or S for Clubs, Diamonds, Hearts, or Spades
@@ -474,6 +485,7 @@ class Game:
             attr_value = [];
             attr_diff_suit = [];
             attr_diff_value = [];
+
             for k,v in store_dec_2[j].iteritems():
                 # print "----------------------------------------------------"
                 # print "K : ",k
@@ -495,7 +507,7 @@ class Game:
                         visibility[j-3][0] = 1;
 
                         
-
+                # DECOMPOSE EACH ATTRIBUTE
                         
                 
                 #------------------------------------------------------------------------------------------
@@ -609,7 +621,7 @@ class Game:
                         final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
                     elif (i2>3 and i2<5):
                         final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
-        #print final_rule;
+        self.guessed_rule_dict = final_rule;
         self.guessed_rule = self.create_final_rule(final_rule)  
 
     def create_final_rule(self,final_rule):
@@ -806,11 +818,24 @@ class Game:
 
 if __name__ == "__main__":
     print "Calculating..."
+    time_start = datetime.datetime.now()
     game = Game(Card(sys.argv[1][:-1], sys.argv[1][len(sys.argv[1])-1:]), rule=sys.argv[2], randomPlay = True)
     game.playNext(200)
-    print "\nThe rule that was guessed after 200 moves is: "
-    print game.guessed_rule + "\n"
+
+    print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
+    print game.guessed_rule_dict
+
+    print "\nThe rule that was guessed after 200 moves is (as an expression): "
+    print game.guessed_rule
+
     scientist = scientist.Scientist(game.history, game.provided_rule, game.guessed_rule)
     print "\nThe total score for the player is: " + str(scientist.score())
-    print "\nThe rule that was guessed after 200 moves is: "
+
+    print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
+    print game.guessed_rule_dict
+
+    print "\nThe rule that was guessed after 200 moves is (as an expression): "
     print game.guessed_rule
+
+    time_end =  datetime.datetime.now()
+    print "\nTime Taken (h:m:s.ms): " + str(time_end - time_start)
