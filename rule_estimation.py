@@ -315,8 +315,7 @@ def filterAndExtendFromKB(cpx):
     # printDesc(rule)
     return rule
 
-def Star(seed, negatives):
-    ruleCover = []
+def Star(seed, negatives, ruleCover = []):
     n, i = 0,0
     for neg in negatives:
         n = n + 1
@@ -340,6 +339,7 @@ def Star(seed, negatives):
 
     return ruleCover
 
+ranks = []
 proposedRule = []
 
 def satisfyEvent(cpx, event):
@@ -370,6 +370,7 @@ def generalizeSimilarRules(cover):
             cRule = cover[j]
             dist = 0
             keys = set(rule.keys()).union(set(cRule.keys()))
+
             for sel in keys:
                 selDist = 0
                 SIR = sel in rule
@@ -391,6 +392,7 @@ def generalizeSimilarRules(cover):
 
         ruleMergeList.append(similars)
 
+
     for rSet in ruleMergeList:
         similars = list(rSet)
         merged = cover[similars[0]]
@@ -406,59 +408,92 @@ def generalizeSimilarRules(cover):
                     merged[sel].setReference(uRef)
         # printDesc(merged, "Merged rule >")
         merged = filterAndExtendFromKB(merged)
-        for r in merged:
-            if r not in newCover:
-                newCover.append(r)
+        for rule in merged:
+            for sel in rule.keys():
+                if float(len(rule[sel].getExpandedReference()))/len(rule[sel].getExpandedDomain()) > 0.8:
+                    del rule[sel]
+            if len(rule) > 0 and rule not in newCover:
+                newCover.append(rule)
 
     return newCover
 
-def addRankVectors(rules, pos, neg):
+def addRankVectors(rules, pos, neg, testingPhase=False, lastEventSet=None):
     rank = []
-    for rule in rules:
+    for rankedCpx in rules:
+        rule = rankedCpx
+        if testingPhase:
+            assert lastEventSet is not None
+            rule = rankedCpx[1]
+
         pCount = 0
         nCount = 0
+        pCover = []
+        nCover = []
         for event in pos:
             if satisfyEvent(rule, event):
                 pCount = pCount + 1
+                pCover.append(event)
 
         for event in neg:
             if satisfyEvent(rule, event):
                 nCount = nCount + 1
+                nCover.append(event)
 
-        suits = 4
-        values = 13
-        for sel in rule:
-            if sel == 'suit0':
-                suits = len(rule[sel].getReference())
-            elif sel == 'value0':
-                values = len(rule[sel].getReference())
-        domainCover = round(float(suits * values)/52.0,3)
+        domainCover = 1
+        pRatio = 0
+        nRatio = 0
+        pLen = len(pos)
+        nLen = len(neg)
 
-        pRatio = round(float(pCount)/len(pos),3)
-        nRatio = round(float(nCount)/len(neg),3)
+        if not testingPhase:
+            suits = 4
+            values = 13
+            for sel in rule:
+                if sel == 'suit0':
+                    suits = len(rule[sel].getReference())
+                elif sel == 'value0':
+                    values = len(rule[sel].getReference())
+            domainCover = round(float(suits * values)/52.0,3)
+            pRatio = round(float(pCount)/pLen,3)
+            nRatio = round(float(nCount)/nLen,3)
+        else:
+            nCount = nCount - (rankedCpx[0][1] * lastEventSet[1])
+            nLen = nLen + lastEventSet[1]
+            nRatio = round(float(nCount)/nLen,3)
+            pCount = pCount + (rankedCpx[0][0] * lastEventSet[0])
+            pLen = pLen + lastEventSet[0]
+            pRatio = round(float(pCount)/pLen,3)
+            if nRatio == 0:                                 #If negative cover is 0.0, Do not let rule rank be affected by play bias
+                pRatio = max(rankedCpx[0][0], pRatio)
 
-        rank.append(((pRatio, -nRatio, -domainCover), rule))
+            domainCover = -rankedCpx[0][2]
+
+        rank.append(((pRatio, -nRatio, -domainCover), rule, (pCover, nCover)))
+
+    rank.sort(key=lambda x: x[0], reverse=True)
 
     return rank
 
-def LEF(cover, pos, neg, MAXSTAR=4):
+def LEF(cover, pos, neg, MAXSTAR=6, incrementing=False):
     cover = generalizeSimilarRules(cover)
-
     rank = addRankVectors(cover, pos, neg)
 
     if len(rank) > 0:
-        rank.sort(reverse=True)
+        rank = rank[:min(len(rank), MAXSTAR)]
         print "all rules: (only top " + str(min(len(rank), MAXSTAR)) + " and those respecting threshold values are taken forward"
         print "Maximize -> (correct_positives/total_positives, correct_negatives/total_negatives, domain_cover)\n"
         for r in rank:
             print str(r[0]) + " : ",
             printDesc(r[1])
 
-        rank = filter(
-            lambda x: x[0][0] >= threshold["positives"] and x[0][1] >= threshold["negatives"] and x[0][2] >= threshold["domainCover"],
+        fRank = filter(
+            lambda x: x[0][0] >= (0.6 if incrementing else threshold["positives"]) and x[0][1] >= threshold["negatives"] and x[0][2] >= threshold["domainCover"],
             rank)
 
-        rank = rank[:min(len(rank), MAXSTAR)]
+        if len(fRank) == 0 and not incrementing:
+            rank = [rank[0]]
+        else:
+            rank = fRank
 
         print "\nRules picked from the list >"
         for r in rank:
@@ -467,19 +502,47 @@ def LEF(cover, pos, neg, MAXSTAR=4):
         print ''
     return rank
 
+def incrementalUpdate(rank, pos, neg, lastEventSet):
+    rank = addRankVectors(rank, pos, neg, True, lastEventSet)
+    print "test Ranks >"
+    for i in rank:
+        print str(i[0]) + " :",
+        printDesc(i[1])
+    newCover = []
+    newRanks = []
+    for rankedCpx in rank:
+        if rankedCpx[0][1] != 0:
+            for seed in rankedCpx[2][0]:
+                nCover = Star(seed, rankedCpx[2][1], [rankedCpx[1]])
+                seedRank = LEF(nCover, pos, neg, True)
+                for i in seedRank:
+                    if i[1] not in newCover:
+                        newRanks.append((i[0], i[1]))
+                        newCover.append(i[1])
+        elif rankedCpx[1] not in newCover:
+            newRanks.append((rankedCpx[0], rankedCpx[1]))
+            newCover.append(rankedCpx[1])
+
+    ranks[:] = newRanks
+    proposedRule[:] = newCover
+    print "New Ranks >"
+    for i in ranks:
+        print str(i[0]) + " :",
+        printDesc(i[1])
+
+def findAndMergeExactSubsets(ranks):
+    return ranks
+
 ## Generate a cover of all positives, so that no negative is covered
-def AQ(pos, neg):
+def AQ(pos, neg, lastEventSet):
     covers = []
-    ranks = []
+
     print "\nAQ new event set iteration\n"
-    if len(proposedRule) > 0:
-        print "Testing proposals on new events\n"
-        rank = addRankVectors(proposedRule, pos, neg)
-        rank.sort(reverse=True)
-        for r in rank:
-            print str(r[0]) + " : ",
-            printDesc(r[1])
-        print "--\n"
+    if len(ranks) > 0:
+        print "Incremental Learning Start\n"
+        incrementalUpdate(ranks, pos, neg, lastEventSet)
+
+        print "Incremental Learning Complete\n"
 
     for seed in pos:
         # printDesc(seed, 'Picking up seed>')
@@ -495,10 +558,17 @@ def AQ(pos, neg):
         seedRank = LEF(cover, pos, neg)
         print "Evaluation done!!<-----------\n"
 
-        ranks.extend(seedRank)
         for i in seedRank:
+            ranks.append((i[0], i[1]))
             proposedRule.append(i[1])
-    ranks.sort(reverse=True)
+
+    ranks.sort(key=lambda x: x[0], reverse=True)
+    ranks[:] = findAndMergeExactSubsets(ranks)
+
+    print "AQ iteration complete"
+    for i in ranks:
+        print str(i[0]) + " :",
+        printDesc(i[1])
 
 ##################
 
@@ -514,7 +584,7 @@ def emulate_Play(numberOfPlayers = 6):
         'positive': [],
         'negative': []
     }
-
+    lastEventSet = (0, 0)
     #Time for players to play
     for i in range(0, numberOfPlays):
         pos, neg = describe(game.playNext(runCount = numberOfPlayers), params['lookback'])
@@ -535,7 +605,8 @@ def emulate_Play(numberOfPlayers = 6):
             #
 
             #DNF Model fitting, Very large search space, execute only if necessary
-            AQ(eventSets['positive'], eventSets['negative'])
+            AQ(eventSets['positive'], eventSets['negative'], lastEventSet)
+            lastEventSet = (len(pos), len(neg))
 
 
                 #Learning code ends
