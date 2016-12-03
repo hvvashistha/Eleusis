@@ -399,9 +399,9 @@ class Game:
         self.history.append((lastPlays[-1], correct))
 
     def printRecord(self):
-        # for record in self.history:
-        #     print colored(record[0], 'green' if record[1] else 'red') + ' |',
-        # print ''
+        #for record in self.history:
+        #    print colored(record[0], 'green' if record[1] else 'red') + ' |',
+        #print ''
 
 
         correct_list = []
@@ -626,11 +626,13 @@ class Game:
 
     def create_final_rule(self,final_rule):
         rule = ""
+        count = 0
         for k,v in final_rule.items():
             rule = rule + self.process_key(k)
             rule = rule + self.process_values(v)
-            rule = rule + ","              
-        rule = rule.strip(',') + "))"
+            count = count + 1 + len(v)
+        for i in range(0, count):
+            rule = rule + ")"
         return rule
 
     def process_key(self,key):
@@ -646,6 +648,14 @@ class Game:
 
     def process_values(self, values):
         rule_string = ""
+        if "even_set([False])" in values:
+            for v in values:
+                if v.startswith("value_set"):
+                    values.remove(v)
+        if "even_set([True])" in values:
+            for v in values:
+                if v.startswith("value_set"):
+                    values.remove(v)
         if  len(values) > 1:
             rule_string = rule_string + "and("
         for val in values:
@@ -657,10 +667,10 @@ class Game:
                     rule_string = rule_string + "or("
                 for attr in attr_set:
                     rule_string = rule_string + "equal(" + str(str1[0]) + "(current)," + str(attr) + "),"
-                rule_string = rule_string.strip(',') + "),"
+                #rule_string = rule_string.strip(',') + "),"
             else:
                 rule_string = rule_string + "equal(" + str(str1[0]) + "(current)," + str(str1[1] + "),")
-        rule_string = rule_string.strip(',')
+        #rule_string = rule_string.strip(',')
         return rule_string
 
     def det_periodicity(self,correct_list,incorrect_list):
@@ -757,7 +767,7 @@ class Game:
         player = self.nextPlayer()
         play = None
         card = None
-        os.system('clear')
+        #os.system('clear')
         self.printRecord()
         lastPlays = []
         events = []
@@ -805,7 +815,7 @@ class Game:
 
         self.recordPlay(events, correct)
         # raw_input()
-        os.system('clear')
+        #os.system('clear')
         self.printRecord()
         if self.randomPlay and (runCount is None or self.playRun < runCount):
             self.playRun = self.playRun + 1
@@ -822,20 +832,27 @@ if __name__ == "__main__":
     game = Game(Card(sys.argv[1][:-1], sys.argv[1][len(sys.argv[1])-1:]), rule=sys.argv[2], randomPlay = True)
     game.playNext(200)
 
-    print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
-    print game.guessed_rule_dict
-
-    print "\nThe rule that was guessed after 200 moves is (as an expression): "
-    print game.guessed_rule
-
-    scientist = scientist.Scientist(game.history, game.provided_rule, game.guessed_rule)
-    print "\nThe total score for the player is: " + str(scientist.score())
+    for record in game.history:
+        print colored(record[0], 'green' if record[1] else 'red') + ' |',
+    print ''    
 
     print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
     print game.guessed_rule_dict
 
     print "\nThe rule that was guessed after 200 moves is (as an expression): "
     print game.guessed_rule
+    
+    try:   
+        scientist = scientist.Scientist(game.history, game.provided_rule, game.guessed_rule)
+        print "\nThe total score for the player is: " + str(scientist.score())
+
+        print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
+        print game.guessed_rule_dict
+
+        print "\nThe rule that was guessed after 200 moves is (as an expression): "
+        print game.guessed_rule
+    except:
+        print "\nFailed to evaluate the player rule."
 
     time_end =  datetime.datetime.now()
     print "\nTime Taken (h:m:s.ms): " + str(time_end - time_start)

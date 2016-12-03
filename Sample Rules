@@ -5,13 +5,17 @@ PERIODIC RULES :
 If previous card black, then next card red.
 If previous card red, then next card black.
 python eleusis_test.py 3D "if(equal(color(previous),R),equal(color(current),B),if(equal(color(previous),B),equal(color(current),R),))"
+							if(equal(even(previous),True),and(or(equal(suit(current),C),equal(suit(current),S),equal(color(current),B),if(equal(even(previous),False),and(or(equal(suit(current),H),equal(suit(current),D),equal(color(current),R),))))))
 ------------------------------------------------------------------------------------------------------------------------------------------
 If previous card odd, then next card even.
 If previous card even, then next card odd.
-python eleusis_test.py 3D if(odd(previous),even(current),odd(current))
+python eleusis_test.py 3D "if(odd(previous),even(current),odd(current))"
+
 ------------------------------------------------------------------------------------------------------------------------------------------
 H-->D-->S-->C-->H
-python eleusis_test.py 3D if(equal(suit(previous),H),equal(suit(current),D),if(equal(suit(previous),D),equal(suit(current),S),if(equal(suit(previous),S),equal(suit(current),C),if(equal(suit(previous),C),equal(suit(current),H),))))
+python eleusis_test.py 3D "if(equal(suit(previous),H),equal(suit(current),D),if(equal(suit(previous),D),equal(suit(current),S),if(equal(suit(previous),S),equal(suit(current),C),if(equal(suit(previous),C),equal(suit(current),H),))))"
+							if(equal(suit(previous),D),equal(suit(current),S),if(equal(suit(previous),C),equal(suit(current),H),if(equal(suit(previous),H),equal(suit(current),D),if(equal(suit(previous),S),equal(suit(current),C),))))))))
+
 ------------------------------------------------------------------------------------------------------------------------------------------
 Even Diamond --> Odd Heart
 Odd Heart         --> Even Spades
