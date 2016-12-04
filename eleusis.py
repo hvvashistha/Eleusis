@@ -307,4 +307,3 @@ class Tree:
             print " with cards =", cards
             raise
 
-0

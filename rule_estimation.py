@@ -5,22 +5,23 @@ import eleusis_test as GameModule
 from eleusis_test import Selector
 from eleusis_test import Card
 import copy
+import time
 
 lang = GameModule.Language()
 
 KB = {
-    ("suit", ("C", "S")): Selector("color", Selector.CIRCULAR, Card.domain["color"], '==', "B"),
-    ("suit", ("D", "H")): Selector("color", Selector.CIRCULAR, Card.domain["color"], '==', "R"),
-    ("suit", ("C")): Selector("color", Selector.CIRCULAR, Card.domain["color"], '==', "B"),
-    ("suit", ("B")): Selector("color", Selector.CIRCULAR, Card.domain["color"], '==', "B"),
-    ("suit", ("D")): Selector("color", Selector.CIRCULAR, Card.domain["color"], '==', "R"),
-    ("suit", ("H")): Selector("color", Selector.CIRCULAR, Card.domain["color"], '==', "R"),
-    ("color", ("B",)): Selector("suit", Selector.CIRCULAR, Card.domain["suit"], '==', ["C", "S"]),
-    ("color", ("R",)): Selector("suit", Selector.CIRCULAR, Card.domain["suit"], '==', ["D", "H"]),
-    ("parity", (0,)): Selector("value", Selector.INTERVAL, Card.domain["value"], '==', [2, 4, 6, 8, 10 ,12]),
-    ("parity", (1,)): Selector("value", Selector.INTERVAL, Card.domain["value"], '==', [1, 3, 5, 7, 9 ,11, 13]),
-    ("value", (2, 4, 6, 8, 10 ,12)): Selector('parity', Selector.NOMINAL, [0, 1], '==', [0]),
-    ("value", (1, 3, 5, 7, 9 ,11, 13)): Selector('parity', Selector.NOMINAL, [0, 1], '==', [1])
+    ("suit", ("C", "S")): Selector("color", Selector.NOMINAL, Card.domain["color"], '==', set(["B"])),
+    ("suit", ("D", "H")): Selector("color", Selector.NOMINAL, Card.domain["color"], '==', set(["R"])),
+    ("suit", ("C")): Selector("color", Selector.NOMINAL, Card.domain["color"], '==', set(["B"])),
+    ("suit", ("B")): Selector("color", Selector.NOMINAL, Card.domain["color"], '==', set(["B"])),
+    ("suit", ("D")): Selector("color", Selector.NOMINAL, Card.domain["color"], '==', set(["R"])),
+    ("suit", ("H")): Selector("color", Selector.NOMINAL, Card.domain["color"], '==', set(["R"])),
+    ("color", ("B",)): Selector("suit", Selector.CIRCULAR, Card.domain["suit"], '==', set(["C", "S"])),
+    ("color", ("R",)): Selector("suit", Selector.CIRCULAR, Card.domain["suit"], '==', set(["D", "H"])),
+    ("parity", (0,)): Selector("value", Selector.INTERVAL, Card.domain["value"], '==', set([2, 4, 6, 8, 10 ,12])),
+    ("parity", (1,)): Selector("value", Selector.INTERVAL, Card.domain["value"], '==', set([1, 3, 5, 7, 9 ,11, 13])),
+    ("value", (2, 4, 6, 8, 10 ,12)): Selector('parity', Selector.NOMINAL, set([0, 1]), '==', set([0])),
+    ("value", (1, 3, 5, 7, 9 ,11, 13)): Selector('parity', Selector.NOMINAL, set([0, 1]), '==', set([1]))
 }
 
 hammingVector = {
@@ -36,7 +37,8 @@ threshold = {
     "positives": 0.25,
     "negatives": -0.25,
     "sameRuleDistance": 0.2,
-    "domainCover": -0.6
+    "domainCover": -0.6,
+    "MAXSTAR": 6
 }
 
 def notF(inputV):
@@ -63,7 +65,7 @@ operators = {
 }
 
 params = {
-    'lookback': 0
+    'lookback': 1
 }
 
 def printRank(ranks):
@@ -93,7 +95,8 @@ def printDesc(event, prefix=None, newLine=True):
 ## Problem specific, Given two episode descriptions, generate meta attributes between them
 def getMetaAttributes(episode1, episode2 = None):
     metaAttributes = {}
-    metaAttributes['parity' + str(episode1[1])] =  Selector('parity', Selector.NOMINAL, [0, 1], '==', episode1[0]['value' + str(episode1[1])].getReference() % 2, str(episode1[1]))
+
+    metaAttributes['parity' + str(episode1[1])] =  Selector('parity', Selector.NOMINAL, set([0, 1]), '==', set([episode1[0]['value' + str(episode1[1])].get() % 2]), str(episode1[1]))
 
     if episode2 is not None:
         metaAttributeList = ['value', 'suit', 'color']
@@ -101,19 +104,17 @@ def getMetaAttributes(episode1, episode2 = None):
         for i in metaAttributeList:
             metaAttributes['d' + i + str(episode1[1]) + str(episode2[1])] = episode1[0][i + str(episode1[1])].difference(episode2[0][i + str(episode2[1])])
 
-        metaAttributes['parity' + str(episode2[1])] =  Selector('parity', Selector.NOMINAL, [0, 1], '==', episode2[0]['value' + str(episode2[1])].getReference() % 2, str(episode2[1]))
-
-
+        metaAttributes['parity' + str(episode2[1])] =  Selector('parity', Selector.NOMINAL, set([0, 1]), '==', set([episode2[0]['value' + str(episode2[1])].get() % 2]), str(episode2[1]))
     return metaAttributes
 
 ## Problem specific, breaks down Entities like Card into their attributes
 def getEventEpisodeDescription(eventEpisode, lookback = None):
-    description = {}
+    eventComplex = {}
     for sel in eventEpisode:
         sel.setSPID(lookback)
-        description[sel.getName()] = sel
+        eventComplex[sel.getName()] = sel
 
-    return description
+    return eventComplex
 
 
 ##########################
@@ -141,82 +142,34 @@ def describe(events, lookback):
             neg.append(eventDescription)
     return pos, neg
 
-
-def getComplimentaryReference(type, originalCover, removeCover=[], addCover=[]):
-    if not isinstance(originalCover, list):
-        originalCover = [originalCover]
-    if not isinstance(removeCover, list):
-        removeCover = [removeCover]
-    if not isinstance(addCover, list):
-        addCover = [addCover]
-
-    newCover = []
-
-    if isinstance(removeCover, tuple):
-        removeCover = range(removeCover[0], removeCover[1] + 1)
-    elif not isinstance(removeCover, list):
-        removeCover = [removeCover]
-
-    if isinstance(addCover, tuple):
-        addCover = range(addCover[0], addCover[1] + 1)
-    elif not isinstance(addCover, list):
-        addCover = [addCover]
-
-    for i in originalCover:
-        if isinstance(i, tuple):
-            newCover = newCover + [j for j in range(i[0], i[1]+1) if j not in removeCover]
-        elif i not in removeCover:
-            newCover.append(i)
-
-    newCover = list(set(newCover) | set(addCover))
-
-    return newCover
-
-def conjunct(cp1, cp2, referenceConjuctionCheck=False):
+def multiply(cp1, cp2, referenceConjuctionCheck=False):
     if isinstance(cp1, list) and isinstance(cp2, list):     #Conjunction of OR
         conjunction = []
-
         for cpx1 in cp1:
             for cpx2 in cp2:
-                conjunctedCpx = conjunct(cpx1, cpx2)
+                conjunctedCpx = multiply(cpx1, cpx2)
                 if conjunctedCpx is not None and conjunctedCpx not in conjunction:
                     conjunction.append(conjunctedCpx)
 
-        return conjunction or cp1 or cp2
+        if len(cp1) > 0 and len(cp2) > 0:
+            return conjunction
+        else:
+            return cp1 or cp2
 
     elif isinstance(cp1, dict) and isinstance(cp2, dict):   #Conjunction of AND
         conjunction = {}
         refConjuncted = False
 
-        cp12 = set(cp1.keys()).intersection(set(cp2.keys()))
-        cp1n2 = set(cp1.keys()).difference(set(cp2.keys()))
-        cp2n1 = set(cp2.keys()).difference(set(cp1.keys()))
+        cp12 = set(cp1.keys()) & set(cp2.keys())
+        cp1n2 = set(cp1.keys()) - set(cp2.keys())
+        cp2n1 = set(cp2.keys()) - set(cp1.keys())
 
         for i in cp12:
-            selector = copy.deepcopy(cp1[i])
-            eRef1, eRef2 = cp1[i], cp2[i]
-            if isinstance(cp1[i], Selector):
-                eRef1 = cp1[i].getExpandedReference()
-            if isinstance(cp2[i], Selector):
-                eRef2 = cp2[i].getExpandedReference()
-
-            try:
-                eRef1, eRef2 = set(eRef1), set(eRef2)
-            except:
-                pdb.set_trace()
-
-            refConjuncted = eRef1 != eRef2
-
-            newRef = list(eRef1.intersection(eRef2))
-
-            if len(newRef) == 0:
-                if referenceConjuctionCheck:
-                    return None, None
-                else:
-                    return None
-
-            selector.setReference(newRef)
-            conjunction[i] = selector
+            refConjuncted = cp1[i] != cp2[i]
+            newRef = cp1[i] & cp2[i]
+            if len(newRef) == 0:                            # cp1[i] & cp2[i] = {} = False complex
+                return (None, None) if referenceConjuctionCheck else None
+            conjunction[i] = newRef
 
         for i in cp1n2:
             conjunction[i] = cp1[i]
@@ -224,9 +177,8 @@ def conjunct(cp1, cp2, referenceConjuctionCheck=False):
         for i in cp2n1:
             conjunction[i] = cp2[i]
 
-        if referenceConjuctionCheck:
-            return conjunction, refConjuncted
-        return conjunction
+        return (conjunction, refConjuncted) if referenceConjuctionCheck else conjunction
+
     else:
         raise TypeError("Type of two complexes should be same. dict() for ANDed complexes, list() for ORed complexes")
 
@@ -234,51 +186,39 @@ def filterAndExtendFromKB(cpx):
     disjuncts = {}
     ruleSet = {}
 
-
     for sel in cpx:
-        try:
-            cid = cpx[sel].getIdentifier()
-        except:
-            pdb.set_trace()
+        cid = cpx[sel].getIdentifier()
 
         cover1 = ruleSet[sel] if sel in ruleSet else None
         cover2 = cpx[sel]
 
-        ruleSet, conjuncted = conjunct(ruleSet, {sel: cpx[sel]}, True)
+        ruleSet, conjuncted = multiply(ruleSet, {sel: cpx[sel]}, True)
 
         if ruleSet is None:
             break
 
-        if conjuncted:
-            sc1 = set(cover1.getExpandedReference())
-            sc2 = set(cover2.getExpandedReference())
-            s1 = copy.deepcopy(cover2)
-            s1.setReference(list(sc1.intersection(sc2)))
-            s2 = copy.deepcopy(cover2)
-            s2.setReference(list(sc2 - sc1.intersection(sc2)))
-            if len(s1.getExpandedReference()) > 0 and len(s2.getExpandedReference()) > 0:
+        if conjuncted and cover1 is not None:
+            s1 = cover1 & cover2
+            s2 = cover2 - s1.getReference()
+            if len(s1) > 0 and len(s2) > 0:
                 del ruleSet[sel]
                 disjuncts[sel] = [s1, s2]
 
         for kb in KB:
-            if kb[0] == cid and cpx[sel].test(list(kb[1]), True):
-                kbImplication = copy.deepcopy(KB[kb])
+            if kb[0] == cid and cpx[sel].test(set(kb[1]), True):
+                kbImplication = KB[kb].copy()
                 kbImplication.setSPID(cpx[sel].getSPID())
                 cover2 = kbImplication
 
-                ruleSet, conjuncted = conjunct(ruleSet, {(KB[kb].getIdentifier() + cpx[sel].getSPID()) : kbImplication}, True)
+                ruleSet, conjuncted = multiply(ruleSet, {(KB[kb].getIdentifier() + cpx[sel].getSPID()) : kbImplication}, True)
 
                 if ruleSet is None:
                     break
 
-                if conjuncted:
-                    sc1 = set(cover1.getExpandedReference())
-                    sc2 = set(cover2.getExpandedReference())
-                    s1 = copy.deepcopy(cover1)
-                    s1.setReference(list(sc1.intersection(sc2)))
-                    s2 = copy.deepcopy(cover1)
-                    s2.setReference(list(sc1 - sc1.intersection(sc2)))
-                    if len(s1.getExpandedReference()) > 0 and len(s2.getExpandedReference()) > 0:
+                if conjuncted and cover1 is not None:
+                    s1 = cover1 & cover2
+                    s2 = cover1 - s1.getReference()
+                    if len(s1) > 0 and len(s2) > 0:
                         del ruleSet[sel]
                         disjuncts[sel] = [s1, s2]
 
@@ -289,29 +229,37 @@ def filterAndExtendFromKB(cpx):
             intermediateRule = []
             for sel in disjuncts[name]:
                 for ruleComplex in rule:
-                    intermediateRule.extend(filterAndExtendFromKB(conjunct(ruleComplex, {name: sel})))
+                    intermediateRule.extend(filterAndExtendFromKB(multiply(ruleComplex, {name: sel})))
             rule = intermediateRule
 
     return rule
 
 def Star(seed, negatives, ruleCover = []):
-    n, i = 0,0
+    oT = time.time()
     for neg in negatives:
-        n = n + 1
         cover = []
         CDF = {}
         for sel in neg:
-            i = i + 1
-            if not neg[sel].test(seed[neg[sel].getName()]):
-                selector = copy.deepcopy(neg[sel])
-                selector.setReference(getComplimentaryReference(selector.getType(), selector.getDomain(), removeCover=selector.getReference()))
-                extended = filterAndExtendFromKB({sel: selector})
+            if sel in seed and not neg[sel].test(seed[sel]):
+                cSelector = None
+                if seed[sel].getSPID() == '0' or seed[sel].getType() == Selector.NOMINAL:
+                    cSelector = neg[sel].getCompliment()
+                else:
+                    if seed[sel].getType() == Selector.INTERVAL or seed[sel].getType() == Selector.CIRCULAR:
+                        cSelector = seed[sel].copy()
+                        i1 = cSelector.getSortedDomain().index(cSelector.get())
+                        i2 = neg[sel].getSortedDomain().index(neg[sel].get())
+                        ref = set(cSelector.getSortedDomain()[0:i2]) if i1 < i2 else set(cSelector.getSortedDomain()[i2+1:])
+                        cSelector.setReference(ref)
+
+                extended = filterAndExtendFromKB({sel: cSelector})
                 if extended is not None and extended not in cover:
                     cover.extend(extended)
 
-        ruleCover = [] or conjunct(ruleCover, cover)
-
-
+        ruleCover = [] or multiply(ruleCover, cover)
+    iT = time.time()
+    print "star complete, cover length : " + str(len(ruleCover))
+    print "Time taken by star(" + str(len(negatives)) + "," + str(len(ruleCover)) + "): " + str(iT - oT)
     return ruleCover
 
 ranks = []
@@ -347,44 +295,49 @@ def generalizeSimilarRules(cover):
             keys = set(rule.keys()).union(set(cRule.keys()))
 
             for sel in keys:
-                selDist = 0
                 SIR = sel in rule
+                SIC = sel in cRule
                 identifier = rule[sel].getIdentifier() if SIR else cRule[sel].getIdentifier()
-                domain = rule[sel].getExpandedDomain() if SIR else cRule[sel].getExpandedDomain()
-                ruleRef = set(rule[sel].getExpandedReference() if SIR else domain)
-                cRuleRef = set(cRule[sel].getExpandedReference() if sel in cRule else domain)
-                selDist = 1.0 - float(len(ruleRef.intersection(cRuleRef)))/float(len(ruleRef.union(cRuleRef)))
-                if identifier in hammingVector:
-                    selDist = selDist * hammingVector[identifier]
-                dist = dist + selDist
+                domain = rule[sel].getDomain() if SIR else cRule[sel].getDomain()
+
+                union, intersection = None, None
+
+                if not SIR:
+                    intersection = len(cRule[sel].getReference() if SIC else domain)
+                    union = len(domain)
+                elif not SIC:
+                    intersection = len(rule[sel].getReference() if SIR else domain)
+                    union = len(domain)
+                else:
+                    intersection = len(rule[sel].getReference() & cRule[sel].getReference())
+                    union = len(rule[sel].getReference() | cRule[sel].getReference())
+
+                selDist = 1.0 - float(intersection)/float(union)
+                dist += (selDist * hammingVector[identifier]) if identifier in hammingVector else selDist
 
             if (dist <= threshold["sameRuleDistance"]):
-
-                similars = similars.union([j])
-                covered = covered.union([j])
+                similars |= set([j])
+                covered |= set([j])
 
         ruleMergeList.append(similars)
-
 
     for rSet in ruleMergeList:
         similars = list(rSet)
         merged = cover[similars[0]]
-
 
         for i in range(1, len(similars)):
             nRule = cover[similars[i]]
 
             for sel in nRule:
                 if sel in merged:
-                    uRef = list(set(merged[sel].getExpandedReference()).union(nRule[sel].getExpandedReference()))
-                    uRef.sort()
-                    merged[sel].setReference(uRef)
+                    merged[sel] |= nRule[sel]
 
         merged = filterAndExtendFromKB(merged)
         for rule in merged:
             for sel in rule.keys():
-                if float(len(rule[sel].getExpandedReference()))/len(rule[sel].getExpandedDomain()) > 0.8:
+                if float(len(rule[sel]))/len(rule[sel].getDomain()) > 0.8:
                     del rule[sel]
+
             if len(rule) > 0 and rule not in newCover:
                 newCover.append(rule)
 
@@ -419,13 +372,8 @@ def addRankVectors(rules, pos, neg, testingPhase=False, lastEventSet=None):
         nLen = len(neg)
 
         if not testingPhase:
-            suits = 4
-            values = 13
-            for sel in rule:
-                if sel == 'suit0':
-                    suits = len(rule[sel].getReference())
-                elif sel == 'value0':
-                    values = len(rule[sel].getReference())
+            suits = len(rule['suit0']) if 'suit0' in rule else 4
+            values = len(rule['value0']) if 'value0' in rule else 13
             domainCover = round(float(suits * values)/52.0,3)
             pRatio = round(float(pCount)/pLen,3)
             nRatio = round(float(nCount)/nLen,3)
@@ -449,17 +397,18 @@ def addRankVectors(rules, pos, neg, testingPhase=False, lastEventSet=None):
     return rank
 
 def LEF(cover, pos, neg, MAXSTAR=6, incrementing=False):
+    print "LEF start"
+    oT = time.time()
     cover = generalizeSimilarRules(cover)
+    iT = time.time()
+    print "Time taken by generalizeSimilarRules(" + str(len(cover)) + "): " + str(iT - oT)
+    oT = iT
     rank = addRankVectors(cover, pos, neg)
+    iT = time.time()
+    print "Time taken by addRankVectors(" + str(len(cover)) + "," + str(len(pos)) + "," + str(len(neg)) + "): " + str(iT - oT)
 
     if len(rank) > 0:
         rank = rank[:min(len(rank), MAXSTAR)]
-        # print "all rules: (only top " + str(min(len(rank), MAXSTAR)) + " and those respecting threshold values are taken forward"
-        # print "Maximize -> (correct_positives/total_positives, correct_negatives/total_negatives, domain_cover)\n"
-        # for r in rank:
-        #     print str(r[0]) + " : ",
-        #     printDesc(r[1])
-
         fRank = filter(
             lambda x: x[0][0] >= (0.6 if incrementing else threshold["positives"]) and x[0][1] >= threshold["negatives"] and x[0][3] >= threshold["domainCover"],
             rank)
@@ -468,7 +417,7 @@ def LEF(cover, pos, neg, MAXSTAR=6, incrementing=False):
             rank = [rank[0]]
         else:
             rank = fRank
-
+    print "LEF end"
     return rank
 
 def incrementalUpdate(rank, pos, neg, lastEventSet):
@@ -481,7 +430,7 @@ def incrementalUpdate(rank, pos, neg, lastEventSet):
         if rankedCpx[0][1] != 0:
             for seed in rankedCpx[2][0]:
                 nCover = Star(seed, rankedCpx[2][1], [rankedCpx[1]])
-                seedRank = LEF(nCover, pos, neg, True)
+                seedRank = LEF(nCover, pos, neg, MAXSTAR = threshold["MAXSTAR"], incrementing = True)
                 for i in seedRank:
                     if i[1] not in newCover:
                         newRanks.append((i[0], i[1]))
@@ -515,12 +464,12 @@ def findAndMergeExactSubsets(ranks):
                 identifier = lRank[1][sel].getIdentifier() if SIL else rRank[1][sel].getIdentifier()
 
                 if identifier == "suit" or identifier == "value":
-                    domain = lRank[1][sel].getExpandedDomain() if SIL else rRank[1][sel].getExpandedDomain()
-                    s1 = set(lRank[1][sel].getExpandedReference() if SIL else domain)
+                    domain = lRank[1][sel].getDomain() if SIL else rRank[1][sel].getDomain()
+                    s1 = lRank[1][sel] if SIL else domain
                 else:
                     continue
 
-                s2 = set(rRank[1][sel].getExpandedReference() if sel in rRank[1] else domain)
+                s2 = rRank[1][sel] if sel in rRank[1] else domain
                 if not (s1 >= s2):         #If s2 is not a subset of s1
                     subSet = False
                     break
@@ -563,7 +512,7 @@ def AQ(pos, neg, lastEventSet):
 
             cover = Star(seed, neg)
 
-            seedRank = LEF(cover, pos, neg)
+            seedRank = LEF(cover, pos, neg, MAXSTAR = threshold["MAXSTAR"], incrementing = False)
 
             for i in seedRank:
                 ranks.append((i[0], i[1]))
@@ -601,9 +550,9 @@ def emulate_Play(numberOfPlayers = 8):
     #Time for players to play
     for i in range(0, numberOfPlays):
         pos, neg = describe(game.playNext(runCount = numberOfPlayers), params['lookback'])
+
         eventSets['positive'] = eventSets['positive'] + pos
         eventSets['negative'] = eventSets['negative'] + neg
-
 
         if len(pos) == 0 or len(neg) == 0:
             continue

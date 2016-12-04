@@ -6,6 +6,7 @@ import copy
 import random
 import pdb
 import eleusis
+import functools
 
 """
     •   suit(card) — returns the suit of a card, as a single letter: C, D, H, or S for Clubs, Diamonds, Hearts, or Spades
@@ -74,30 +75,115 @@ Language.CONSTANT = "CONSTANT"
 
 # VL1 representation
 # Class Entity represents an entity, an entity records the attributes an object of that entity is can have and their respective domains
+
 class Selector:
     def __init__(self, variableIdentity, variableType, variableDomain, relation, reference, spID = ''):
         # relation : '==', '>', '>=', '<', '<=', '!='
+        assert isinstance(variableDomain, set)
+        assert isinstance(reference, set)
         self.variable = (variableIdentity, variableType, variableDomain)
         self.specialIdentifier = spID
         self.relation = relation
-        self.reference = reference
+        self.reference = reference              #This is always a set
+        if variableType == Selector.INTERVAL or variableType == Selector.CIRCULAR:
+            self.dList = list(variableDomain)
+            self.dList.sort()
+
+    # def __iter__(self):
+    #     return iter(self.reference)
 
     def __str__(self):
-        ref = ''
-        if isinstance(self.reference, list):
-            ref = ''
-            for i in self.reference:
-                ref = ref + (str(i) if not isinstance(i, tuple) else (str(i[0]) + ".." + str(i[1]))) + ","
-            ref = ref[:-1]
-        else:
-            ref = str(self.reference)
+        return "[" + str(self.variable[0] + self.specialIdentifier) + " " + self.relation + " {" + self.string() + "}]"
 
-        return "[" + str(self.variable[0] + self.specialIdentifier) + " " + self.relation + " {" + str(ref) + "}]"
+    def __len__(self):
+        return len(self.reference)
 
-    def __cmp__(self, sel):
-        if self.variable == sel.variable:
-            return cmp(self.getExpandedReference(), sel.getExpandedReference())
-        return False
+    def __eq__(self, other):
+        isset = isinstance(other, set)
+        return ((isset or self.variable == other.variable) and
+                self.getReference() == (other if isset else other.getReference()))
+
+    def __lt__(self, other):
+        isset = isinstance(other, set)
+        return ((isset or self.variable == other.variable) and
+                self.getReference() < (other if isset else other.getReference()))
+
+    def __gt__(self, other):
+        isset = isinstance(other, set)
+        return ((isset or self.variable == other.variable) and
+                self.getReference() > (other if isset else other.getReference()))
+
+    def __le__(self, other):
+        isset = isinstance(other, set)
+        return ((isset or self.variable == other.variable) and
+                self.getReference() <= (other if isset else other.getReference()))
+
+    def __ne__(self, other):
+        isset = isinstance(other, set)
+        return ((isset or self.variable == other.variable) and
+                self.getReference() != (other if isset else other.getReference()))
+
+    def __ge__(self, other):
+        isset = isinstance(other, set)
+        return ((isset or self.variable == other.variable) and
+                self.getReference() >= (other if isset else other.getReference()))
+
+    def __and__(self, other):
+        newInstance = self.copy()
+        newInstance &= other
+        return newInstance
+
+    def __or__(self, other):
+        newInstance = self.copy()
+        newInstance |= other
+        return newInstance
+
+    def __sub__(self, other):
+        newInstance = self.copy()
+        newInstance -= other
+        return newInstance
+
+    def __add__(self, other):
+        return self | other
+
+    def __xor__(self, other):
+        newInstance = self.copy()
+        newInstance ^= other
+        return newInstance
+
+    def __iand__(self, other):
+        self.reference &= other if isinstance(other, set) else other.reference
+        return self
+
+    def __ior__(self, other):
+        self.reference |= other if isinstance(other, set) else other.reference
+        return self
+
+    def __isub__(self, other):
+        self.reference -= other if isinstance(other, set) else other.reference
+        return self
+
+    def __iadd__(self, other):
+        return self.__ior__(other)
+
+    def __ixor__(self, other):
+        self.reference ^= other if isinstance(other, set) else other.reference
+        return self
+
+    def __invert__(self):
+        self.setReference(self.getDomain() - self.getReference())
+        return self
+
+    def copy(self):
+        return copy.deepcopy(self)
+
+    def string(self):
+        sRef = list(self.getReference())
+        sRef.sort()
+        return ','.join(str(x) for x in sRef)
+
+    def getCompliment(self):
+        return ~self.copy()
 
     def getIdentifier(self):
         return self.variable[0]
@@ -111,25 +197,19 @@ class Selector:
     def getReference(self):
         return self.reference
 
-    def getExpandedReference(self):
-        ref = self.getReference()
-        if isinstance(ref, list):
-            fullRef = []
-            for i in ref:
-                if isinstance(i, tuple):
-                    fullRef = fullRef + [j for j in range(i[0], i[1]+1)]
-                else:
-                    fullRef.append(i)
-            return fullRef
-        return [ref]
+    def get(self):
+        return next(iter(self.getReference()))
 
     def getDomain(self):
         return self.variable[2]
 
-    def getExpandedDomain(self):
-        if self.variable[1] == Selector.INTERVAL and isinstance(self.getDomain()[0], tuple):
-            return [i for i in range(self.getDomain()[0][0], self.getDomain()[0][1] + 1)]
-        return self.getDomain()
+    def getSortedDomain(self):
+        if self.getType() == Selector.NOMINAL:
+            d = self.getDomain()
+            d.sort()
+            return d
+        else:
+            return self.dList
 
     def getType(self):
         return self.variable[1]
@@ -138,47 +218,40 @@ class Selector:
         self.specialIdentifier = str(spID)
 
     def setReference(self, reference):
+        assert isinstance(reference, set)
         self.reference = reference
-        self.reference.sort()
 
     def setRelation(self, rel):
         self.relation = rel
 
     def test(self, value, strict=False):
-        if isinstance(value, Selector):
-            value = value.getExpandedReference()
-        ref = self.getExpandedReference()
-        if isinstance(ref, list):
-            sRef = set(ref)
-            sVal = set(value if isinstance(value, list) else [value])
-            if strict:
-                return sRef == sVal
-            else:
-                return sRef.issuperset(sVal)
-        return eval("'" + str(value) + "'" + self.relation + "'" + str(ref) + "'")
+        if len(self) == 1 and len(value) == 1 and self.relation != '==':
+            return eval("'" + str(self.get()) + "'" + self.relation + "'" + str(value.get()) + "'")
+        else:
+            return self == value if strict else self >= value
 
     def difference(self, sel):
         assert self.variable == sel.variable
         name = ('d' + self.variable[0] + self.specialIdentifier + sel.specialIdentifier)
+
         if self.variable[1] == Selector.NOMINAL:
-            return Selector(name, Selector.INTERVAL, [0, 1], '==',
-                1 if self.reference != sel.reference else 0)
+            return Selector(name, Selector.NOMINAL, set([0, 1]), '==', set([1 if self != sel else 0]))
         elif self.variable[1] == Selector.CIRCULAR:
-            dLimit = len(self.variable[2]) - 1
-            return Selector(name, Selector.INTERVAL, [(-dLimit, dLimit)], '==',
-                self.variable[2].index(self.reference) - sel.variable[2].index(sel.reference))
+            dLimit = len(self.getDomain()) - 1
+            return Selector(name, Selector.INTERVAL, set(range(-dLimit, dLimit + 1)), '==',
+                set([self.dList.index(self.get()) - self.dList.index(sel.get())]))
             # return len(self.variable[2]) % (self.variable[2].index(self.reference) - sel.variable[2].index(sel.reference))
         else:
-            dLimit = self.variable[2][0][1] - self.variable[2][0][0]
-            return Selector(name, Selector.INTERVAL, [(-dLimit, dLimit)], '==',
-                self.reference - sel.reference)
-
-
+            dLimit = len(self.getDomain()) - 1
+            ref = self.get()
+            sRef = sel.get()
+            return Selector(name, Selector.INTERVAL, set(range(-dLimit, dLimit + 1)), '==', set([self.get() - sel.get()]))
 
 #Attribute Types
 Selector.NOMINAL = "NOMINAL"
 Selector.CIRCULAR = "CIRCULAR"
 Selector.INTERVAL = "INTERVAL"
+
 
 def setToRange(rangeSet):
     r = []
@@ -225,12 +298,12 @@ class Card:
         # if not Card.definition.inDomain("value", value) or not Card.definition.inDomain("suit", suit):
         #     print 'Wrong Values'
         #     raise Exception('Wrong Values')
-        self.value = Selector("value", Selector.INTERVAL, Card.domain["value"], '==', value)
-        self.suit = Selector("suit", Selector.CIRCULAR, Card.domain["suit"], '==', suit)
-        self.color = Selector("color", Selector.NOMINAL, Card.domain["color"], '==', Card.color[suit])
+        self.value = Selector("value", Selector.INTERVAL, Card.domain["value"], '==', set([value]))
+        self.suit = Selector("suit", Selector.CIRCULAR, Card.domain["suit"], '==', set([suit]))
+        self.color = Selector("color", Selector.NOMINAL, Card.domain["color"], '==', set([Card.color[suit]]))
 
     def __str__(self):
-        return str(self.value.getReference()) + str(self.suit.getReference())
+        return str(self.value.string()) + str(self.suit.string())
 
     def __cmp__(self, other):
         if isinstance(other, Card):
@@ -243,9 +316,9 @@ class Card:
         yield self.color
 
 Card.domain = {
-    "value": [(1,13)],
-    "suit": ['C', 'D', 'H', 'S'],
-    "color": ['B', 'R']
+    "value": set(range(1,14)),
+    "suit": set(['C', 'D', 'H', 'S']),
+    "color": set(['B', 'R'])
 }
 Card.color = {
     'C': 'B',
