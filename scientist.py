@@ -48,8 +48,8 @@ class Scientist:
 		self.build_all_cards()
 		for card in cards:
 			self.play(str(card[0]), self.dealer_rule)
-		print "The Board State (using the dealer rule) is: "
-		print self.board_state()
+		#print "The Board State (using the dealer rule) is: "
+		#print self.board_state()
 
 	#region Main Functions
 

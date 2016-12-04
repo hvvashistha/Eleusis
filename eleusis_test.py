@@ -626,13 +626,18 @@ class Game:
 
     def create_final_rule(self,final_rule):
         rule = ""
-        count = 0
         for k,v in final_rule.items():
+
             rule = rule + self.process_key(k)
             rule = rule + self.process_values(v)
-            count = count + 1 + len(v)
-        for i in range(0, count):
+            rule = rule + ","
+        # print "BEFORE ",rule;
+        rule = rule.strip(',')
+        # print "AFTER  ",rule;
+        for i in range(len(final_rule)):
+
             rule = rule + ")"
+        # rule = rule.strip(',') + "))"
         return rule
 
     def process_key(self,key):
@@ -644,34 +649,50 @@ class Game:
                 rule_string=rule_string+(str(str1[k])+"(previous),")
             else:
                 rule_string=rule_string+(str1[k]+"),")
+        #print "key : ",rule_string;
         return rule_string
 
     def process_values(self, values):
-        rule_string = ""
-        if "even_set([False])" in values:
-            for v in values:
-                if v.startswith("value_set"):
-                    values.remove(v)
-        if "even_set([True])" in values:
-            for v in values:
-                if v.startswith("value_set"):
-                    values.remove(v)
-        if  len(values) > 1:
-            rule_string = rule_string + "and("
-        for val in values:
-            str1 = val.split("_")
-            if "set" in str1[1]:
-                str2 = str1[1].strip("set(").strip(")")
-                attr_set = ast.literal_eval(str2)
-                if len(attr_set) > 1:
-                    rule_string = rule_string + "or("
-                for attr in attr_set:
-                    rule_string = rule_string + "equal(" + str(str1[0]) + "(current)," + str(attr) + "),"
-                #rule_string = rule_string.strip(',') + "),"
+        # print "________________________________________________________________________________"
+        rule_string = "";
+        conjunctions = [];
+        # print values
+        for x in values:
+            # print x;
+            x = x.split("_set");
+            attribute = x[0];
+            voa = x[1].replace("([","").replace("])","").replace("'","").split(", ");
+            # print attribute;
+            # print voa
+            if len(voa)==1:
+                rule_string = "equal("+attribute+"(current),"+voa[0]+")";
             else:
-                rule_string = rule_string + "equal(" + str(str1[0]) + "(current)," + str(str1[1] + "),")
-        #rule_string = rule_string.strip(',')
-        return rule_string
+                for y in voa:
+                    # print "Index of y : ",voa.index(y);
+                    if voa.index(y)==0:
+                        rule_string = "equal("+attribute+"(current),"+y+")"
+                        # print "1",rule_string;
+                    else:
+                        rule_string = "or("+rule_string+",equal("+attribute+"(current),"+y+"))";
+                        # print "2",rule_string;
+            conjunctions.append(rule_string);
+                    
+        # print "Rules : ",conjunctions;
+        voa = conjunctions;
+        rule_string2 = "";
+        if len(voa)==1:
+                rule_string2 = voa[0];
+        else:
+            for y in voa:
+                # print "Index of y : ",voa.index(y);
+                if voa.index(y)==0:
+                    rule_string2 = y;
+                    # print "1",rule_string;
+                else:
+                    rule_string2 = "and("+rule_string2+","+y+")";
+
+        # print rule_string2;
+        return rule_string2;
 
     def det_periodicity(self,correct_list,incorrect_list):
         lenG = (len(correct_list)+len(incorrect_list))/2
@@ -831,10 +852,19 @@ if __name__ == "__main__":
     time_start = datetime.datetime.now()
     game = Game(Card(sys.argv[1][:-1], sys.argv[1][len(sys.argv[1])-1:]), rule=sys.argv[2], randomPlay = True)
     game.playNext(200)
-
+    
+    line = ""
+    print "\nThe Board State (using the dealer rule) is:"
     for record in game.history:
-        print colored(record[0], 'green' if record[1] else 'red') + ' |',
-    print ''    
+        if record[1]:
+            if line.endswith(", "):
+                line = line.strip(" ").strip(",")
+            if not(line == ""):
+                print line + " ]"
+            line = ""
+            line = str(record[0]) + " : [ "
+        else:
+            line = line +  str(record[0]) + ", "
 
     print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
     print game.guessed_rule_dict
