@@ -65,7 +65,7 @@ operators = {
 }
 
 params = {
-    'lookback': 1
+    'lookback': 0
 }
 
 def printRank(ranks):
