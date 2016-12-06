@@ -399,26 +399,38 @@ class Game:
         self.history.append((lastPlays[-1], correct))
 
     def printRecord(self):
-        #for record in self.history:
-        #    print colored(record[0], 'green' if record[1] else 'red') + ' |',
-        #print ''
+        for record in self.history:
+            print colored(record[0], 'green' if record[1] else 'red') + ' |',
+        print ''
 
 
         correct_list = []
-        incorrect_list = []
+        incorrect_list = {}
 
       
         # for f in functions['attribute']:
         #     #print "Fishy here"
-        #     print f.__name__ + '|',
-        # print "correct"
-        #print self.truthTable
+        #     print f.__name__ + '  |',
+        # # # print "correct"
+        # # # print self.truthTable
+        # print ""
+        index_of_correct = 1;
+        incorrect_list[1] = [];
         for record in self.truthTable:
+        	
+        	
             index = self.truthTable.index(record)
+            
             if str(self.history[index + 1][1])=="True":
                 correct_list.append(record)
+                index_of_correct = index_of_correct + 1;
+                #print "Creating new List of index",index_of_correct;
+                incorrect_list[index_of_correct] = [];
             else:   
-                incorrect_list.append(record)
+            	#print "Before : ",index_of_correct
+                incorrect_list[index_of_correct].append(record)
+                print index_of_correct," : ",incorrect_list[index_of_correct]
+            
 
             # for attribute in record:
             #     #print type(record)
@@ -426,11 +438,13 @@ class Game:
             
             # print str(self.history[index + 1][1])
             #print "Correct List : ", correct_list
-            #print "Incorrect List : ", incorrect_list
+            
+            
 
-        # sys.stdout.write('\010\010\n\n')
+        sys.stdout.write('\010\010\n\n')
         #self.det_periodicity(correct_list,incorrect_list)
         self.det_decomposition(correct_list,incorrect_list)
+        
 
     def det_decomposition(self,correct_list,incorrect_list):
         # print "=================================================================================================="
@@ -461,6 +475,9 @@ class Game:
                 #print "store_dec[",functions['attribute'][j].__name__,"][",correct_list[i][j],"] :  ",store_dec[j][correct_list[i][j]];
             #print "***********************************************************************************"
 
+
+
+
         for j in range(3,10):
             for k,v in store_dec[j].iteritems():
                 for x in range(3,10):
@@ -469,13 +486,14 @@ class Game:
                     for z in v:
                         l.add(z[x])
                     store_dec_2[j][k].append(l);
-                
+
+        
+
+        #-------------------------------------------------------------------------------------------------
+        
+        
         for j in range(3,10):
-            # domain_suit = set(['H', 'S', 'C', 'D']);
-            # domain_isroyal = set([False, True]);
-            # domain_even = set([False, True]);
-            # domain_color = set(['R', 'B']);
-            # domain_value = set([1,2,3, 4,5, 6,7, 8,9,11,13, 10, 12]);
+
             
             #----------------------------
             attr_suit = [];
@@ -583,20 +601,34 @@ class Game:
             # print visibility;
         
         min = 900000;  
-        min_x = 0;  
+        min_x = [0, 0, 0, 0, 0, 0, 0];  
         min_x_index = 0;              
         # print visibility;
+        index_of_count = 0;
         for x1 in visibility:
             count = 0;
             for y1 in x1:
                 if y1 == 1:
                     count = count + 1;
-            if(count<min):
+            
+            if(count<=min):
                 min = count;
                 min_x = x1;
-                min_x_index = visibility.index(x1);
-        
+                min_x_index = index_of_count;
 
+        	
+
+        	
+            # print "Count",count
+            # print "Min",min;
+            # print "x1",x1
+            # print "index_of_count",index_of_count;
+            # print "Minimum Index",min_x_index;
+            # print "----------------------------"
+            index_of_count = index_of_count + 1;
+
+        # print min
+        # print visibility
         # print "min_x",min_x;
         # print "min_x_index",min_x_index;
 
@@ -612,17 +644,57 @@ class Game:
             for i2 in range(len(v1)):
                 if min_x[i2] == 0:
                     if (i2==0 and len(v1[i2])<4):
-                        final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
+                        black_set = set(['S','C']);
+                        red_set = set(['D','H']);
+                        if v1[i2] == black_set:
+                            v1[3].add('B');
+                        elif v1[i2] == red_set:
+                            v1[3].add('R');
+                        else:
+                            final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
                     elif (i2==1 and len(v1[i2])<2):
                         final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
                     elif (i2==2 and len(v1[i2])<2):
                         final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
                     elif (i2==3 and len(v1[i2])<2):
                         final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
-                    elif (i2>3 and i2<5):
-                        final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
+                    elif (i2==4 and len(v1[i2])<13):
+                        
+                        even_count = 0;
+                        odd_count = 0;
+
+                        for x in v1[i2]:
+                            if x%2==0:
+                                even_count = even_count + 1;
+                            elif x%2==1:
+                                odd_count = odd_count + 1;
+
+
+
+                        isRoyal_set = set([1,2,3,4,5,6,7,8,9,10]);
+                        not_isRoyal_set = set([11,12,13]);
+
+                        if len(v1[i2]) == even_count:
+                            v1[4].add("True");
+                        elif len(v1[i2]) == odd_count:
+                            v1[4].add("False");
+                        elif v1[i2] == isRoyal_set:
+                            v1[1].add("True");
+                        elif v1[i2] == not_isRoyal_set:
+                            v1[1].add("False");
+                        else:
+                        	pass;
+                            # final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
+                    # elif (i2==5 and len(v1[i2])<7):
+                    #     final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
+                    # elif (i2==6 and len(v1[i2])<27):
+                    #     final_rule[new_key].append(functions['attribute'][i2+3].__name__+"_"+str(v1[i2]));
+                    
         self.guessed_rule_dict = final_rule;
         self.guessed_rule = self.create_final_rule(final_rule)  
+
+    
+
 
     def create_final_rule(self,final_rule):
         rule = ""
@@ -788,13 +860,16 @@ class Game:
         player = self.nextPlayer()
         play = None
         card = None
-        #os.system('clear')
+        os.system('clear')
         self.printRecord()
         lastPlays = []
         events = []
         # play the cards randomly for now
         if self.randomPlay:
             play = player.playRandom()
+            print game.guessed_rule_dict
+            print game.guessed_rule
+            neg_guessed_rule = "not(" +game.guessed_rule+")"
         else:
             #print "Player " + str(self.players.index(player) + 1) + " : "
             player.showCards()
@@ -836,7 +911,7 @@ class Game:
 
         self.recordPlay(events, correct)
         # raw_input()
-        #os.system('clear')
+        os.system('clear')
         self.printRecord()
         if self.randomPlay and (runCount is None or self.playRun < runCount):
             self.playRun = self.playRun + 1
@@ -851,29 +926,22 @@ if __name__ == "__main__":
     print "Calculating..."
     time_start = datetime.datetime.now()
     game = Game(Card(sys.argv[1][:-1], sys.argv[1][len(sys.argv[1])-1:]), rule=sys.argv[2], randomPlay = True)
-    game.playNext(200)
+    game.playNext(10)
 
-    for record in game.history:
-        print colored(record[0], 'green' if record[1] else 'red') + ' |',
-    print ''    
+    # print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
+    # print game.guessed_rule_dict
 
-    print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
-    print game.guessed_rule_dict
+    # print "\nThe rule that was guessed after 200 moves is (as an expression): "
+    # print game.guessed_rule
 
-    print "\nThe rule that was guessed after 200 moves is (as an expression): "
-    print game.guessed_rule
-    
-    try:   
-        scientist = scientist.Scientist(game.history, game.provided_rule, game.guessed_rule)
-        print "\nThe total score for the player is: " + str(scientist.score())
+    # scientist = scientist.Scientist(game.history, game.provided_rule, game.guessed_rule)
+    # print "\nThe total score for the player is: " + str(scientist.score())
 
-        print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
-        print game.guessed_rule_dict
+    # print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
+    # print game.guessed_rule_dict
 
-        print "\nThe rule that was guessed after 200 moves is (as an expression): "
-        print game.guessed_rule
-    except:
-        print "\nFailed to evaluate the player rule."
+    # print "\nThe rule that was guessed after 200 moves is (as an expression): "
+    # print game.guessed_rule
 
-    time_end =  datetime.datetime.now()
-    print "\nTime Taken (h:m:s.ms): " + str(time_end - time_start)
+    # time_end =  datetime.datetime.now()
+    # print "\nTime Taken (h:m:s.ms): " + str(time_end - time_start)
