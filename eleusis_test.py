@@ -399,63 +399,109 @@ class Game:
         self.history.append((lastPlays[-1], correct))
 
     def printRecord(self):
+
+    	#==================================================================================================================================================================================================
+        # Code to print the Deck in the sequence it is being played
+        #==================================================================================================================================================================================================
         for record in self.history:
             print colored(record[0], 'green' if record[1] else 'red') + ' |',
         print ''
 
 
+
+        
+        #==================================================================================================================================================================================================
+        # Code to print the Headers for the VL1 Logic Table
+        #==================================================================================================================================================================================================
+        
+        # for f in functions['attribute']:
+        #     print f.__name__ + '  |',
+        # print ""
+		# for record in self.truthTable:
+        #     index = self.truthTable.index(record)
+        #     for attribute in record:
+        #         print colored(str(attribute) + '\t|', 'green' if self.history[index + 1][1] else 'red'),
+        #     print str(self.history[index + 1][1])
+            
+
+
+
+        #==================================================================================================================================================================================================
+        # correct_list is a list of Cards that were correct
+        # incorrect_list is a dictionary of cards where index points to the number of correct card to which the incorrect cards preceded.
+        #==================================================================================================================================================================================================
         correct_list = []
         incorrect_list = {}
-
-      
-        # for f in functions['attribute']:
-        #     #print "Fishy here"
-        #     print f.__name__ + '  |',
-        # # # print "correct"
-        # # # print self.truthTable
-        # print ""
-        index_of_correct = 1;
-        incorrect_list[1] = [];
+        index_of_correct = 0;
+        incorrect_list[0] = [];
         for record in self.truthTable:
-        	
-        	
             index = self.truthTable.index(record)
-            
             if str(self.history[index + 1][1])=="True":
                 correct_list.append(record)
                 index_of_correct = index_of_correct + 1;
-                #print "Creating new List of index",index_of_correct;
                 incorrect_list[index_of_correct] = [];
             else:   
-            	#print "Before : ",index_of_correct
-                incorrect_list[index_of_correct].append(record)
-                print index_of_correct," : ",incorrect_list[index_of_correct]
-            
-
-            # for attribute in record:
-            #     #print type(record)
-            #     print colored(str(attribute) + '\t|', 'green' if self.history[index + 1][1] else 'red'),
-            
-            # print str(self.history[index + 1][1])
-            #print "Correct List : ", correct_list
-            
-            
-
+            	incorrect_list[index_of_correct].append(record)
         sys.stdout.write('\010\010\n\n')
-        #self.det_periodicity(correct_list,incorrect_list)
-        self.det_decomposition(correct_list,incorrect_list)
+        incorrect_dict = self.combine_incorrect_dictionary(correct_list,incorrect_list);
         
 
-    def det_decomposition(self,correct_list,incorrect_list):
-        # print "=================================================================================================="
-        # print "Decomposition Algorithm"
+
+
+
+        #==================================================================================================================================================================================================
+        # Call Decomposition Algorithm using the correct_list, and incorrect_dict
+        #==================================================================================================================================================================================================
+        self.det_decomposition(correct_list,incorrect_dict)
+        
+        
+
+    def combine_incorrect_dictionary(self,correct_list,incorrect_list):
+    	
+    	#==================================================================================================================================================================================================
+        # Code to map all the negative events and their attributes after a correct card
+        # The rational behind this code is to accomodate for negative test cases in addition to positive test cases
+    	#==================================================================================================================================================================================================
+        
+        incorrect_dict = {};
+    	for i,v in incorrect_list.iteritems():
+
+			l = []
+			for k in range(3,10):
+				temp = set();
+				for j in v:
+					temp.add(j[k])
+				l.append(temp);
+			incorrect_dict[i-1] = l;
+		
+	return incorrect_dict;
+
+
+
+    def det_decomposition(self,correct_list,incorrect_dict):
+
+    	#==================================================================================================================================================================================================
+        # DECOMPOSITION ALGORITHM
+        # ------------------------
+        # This is based on the same concept as illustrated by Thomas Dietterich in his paper 'Mathematical Models of Induction' for Eleusis
+        # The steps include mapping the trial decompositions to the attributes of the next card.
+        # Removing the inconsistencies between different trial decompositions to give out the rule
+        # 
+    	#==================================================================================================================================================================================================
+        
+
+
+
+    	#==================================================================================================================================================================================================
+        # Initializing Date Structures to be used in this function
+        #==================================================================================================================================================================================================
         final_rule = {};
         
-        store_dec = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
+        store_dec   = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
         store_dec_2 = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
+        store_dec_3 = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
         visibility = [[0 for x in range(7)] for y in range(7)];
 
-        # INITIALIZING DICTIONARIES TO STORE THE ATTRIBUTES OF NEXT CORRECT ENTRIES FOR EVERY ATTRIBUTE
         for j in range(3,10):
             store_dec[j] = {};
             for i in range(len(correct_list)-1):
@@ -464,33 +510,45 @@ class Game:
             store_dec_2[j] = {};
             for i in range(len(correct_list)-1):
                 store_dec_2[j][correct_list[i][j]] = [];
-            
-        # OUTER LOOP TO TRAVERSE THROUGH ALL THE ATTRIBUTES
         for j in range(3,10):
-            # THIS LOOP TO TRAVERSE THROUGH ALL THE CORRECT ENTRIES 
-            # THIS STORES THE NEXT CORRECT ENTRY PERTAINING TO EACH ATTRIBUTE OF THE CURRENT NEXT ENTRY
+            store_dec_3[j] = {};
             for i in range(len(correct_list)-1):
-                #print correct_list[i][j];
+                store_dec_3[j][correct_list[i][j]] = [];
+       
+        #==================================================================================================================================================================================================
+        # This code maps each of the attributes of the previous correct card to the list of all correct cards following that attribute
+        #
+        #==================================================================================================================================================================================================
+        for j in range(3,10):
+            for i in range(len(correct_list)-1):
                 store_dec[j][correct_list[i][j]].append(correct_list[i+1]);
-                #print "store_dec[",functions['attribute'][j].__name__,"][",correct_list[i][j],"] :  ",store_dec[j][correct_list[i][j]];
-            #print "***********************************************************************************"
+        
 
 
-
+        #==================================================================================================================================================================================================
+        # This code maps each of the attributes of the previous correct card to the list of all incorrect cards following that attribute
+        #
+        #==================================================================================================================================================================================================
+        for j in range(3,10):
+            for i in range(len(correct_list)-1):
+                store_dec_3[j][correct_list[i][j]].append(incorrect_dict[i]);
+        
+         
+        
 
         for j in range(3,10):
             for k,v in store_dec[j].iteritems():
                 for x in range(3,10):
                     l = set();
-                    #print len(v);
                     for z in v:
                         l.add(z[x])
                     store_dec_2[j][k].append(l);
-
         
 
-        #-------------------------------------------------------------------------------------------------
-        
+        #==================================================================================================================================================================================================
+        # This code removes the inconsistency between each of the Trial Decompositions.
+        #
+        #==================================================================================================================================================================================================
         
         for j in range(3,10):
 
@@ -505,29 +563,14 @@ class Game:
             attr_diff_value = [];
 
             for k,v in store_dec_2[j].iteritems():
-                # print "----------------------------------------------------"
-                # print "K : ",k
-                # print "V : ",v
-                # print "J : ",j
                 if(attr_suit == []):
                     attr_suit = v[0];
                 else:
-                    # print "Suit Intersection : ",v[0].intersection(attr_suit);
-                    # print attr_suit.union(v[0])
-
                     if len(v[0].intersection(attr_suit))==0:
                         attr_suit=attr_suit.union(v[0]);
-                        # print k;
-                        # print "len(v[0].intersection(attr_suit))==0",v[0];
-                        # print visibility[j-3];
-
                     elif len(v[0].intersection(attr_suit))>0:
                         visibility[j-3][0] = 1;
 
-                        
-                # DECOMPOSE EACH ATTRIBUTE
-                        
-                
                 #------------------------------------------------------------------------------------------
                 if(attr_isroyal == []):
                     attr_isroyal = v[1];
@@ -600,7 +643,12 @@ class Game:
                         visibility[j-3][6] = 1;
             # print visibility;
         
-        min = 900000;  
+        #==================================================================================================================================================================================================
+        # This code finds the Trial Decomposition with the minimum number of inconsistencies
+        #
+        #==================================================================================================================================================================================================
+        
+        min = sys.maxint;  
         min_x = [0, 0, 0, 0, 0, 0, 0];  
         min_x_index = 0;              
         # print visibility;
@@ -610,36 +658,21 @@ class Game:
             for y1 in x1:
                 if y1 == 1:
                     count = count + 1;
-            
-            if(count<=min):
+            if(count<min):
                 min = count;
                 min_x = x1;
                 min_x_index = index_of_count;
-
-        	
-
-        	
-            # print "Count",count
-            # print "Min",min;
-            # print "x1",x1
-            # print "index_of_count",index_of_count;
-            # print "Minimum Index",min_x_index;
-            # print "----------------------------"
             index_of_count = index_of_count + 1;
 
-        # print min
-        # print visibility
-        # print "min_x",min_x;
-        # print "min_x_index",min_x_index;
 
-        
-
+        #==================================================================================================================================================================================================
+        # This code is to create the final rule along with the part to generalize values 
+        #
+        #==================================================================================================================================================================================================
+            
         for k1,v1 in store_dec_2[min_x_index+3].iteritems():
-            #print k1;
             var_attribute = functions['attribute'][min_x_index+3].__name__;
             new_key = var_attribute +"_"+ str(k1);
-            # print new_key;
-            # print type(new_key)
             final_rule[new_key]=[];
             for i2 in range(len(v1)):
                 if min_x[i2] == 0:
@@ -695,7 +728,11 @@ class Game:
 
     
 
-
+	#==================================================================================================================================================================================================
+    # This code converts the rule from Dictionary format to Expression format
+    #
+    #==================================================================================================================================================================================================
+     
     def create_final_rule(self,final_rule):
         rule = ""
         for k,v in final_rule.items():
@@ -703,67 +740,49 @@ class Game:
             rule = rule + self.process_key(k)
             rule = rule + self.process_values(v)
             rule = rule + ","
-        # print "BEFORE ",rule;
         rule = rule.strip(',')
-        # print "AFTER  ",rule;
         for i in range(len(final_rule)):
-
             rule = rule + ")"
-        # rule = rule.strip(',') + "))"
         return rule
 
     def process_key(self,key):
         str1 = key.split("_")
-        #print str1
         rule_string = "if(equal("
         for k in range(len(str1)):
             if k%2==0:
                 rule_string=rule_string+(str(str1[k])+"(previous),")
             else:
                 rule_string=rule_string+(str1[k]+"),")
-        #print "key : ",rule_string;
         return rule_string
 
     def process_values(self, values):
-        # print "________________________________________________________________________________"
         rule_string = "";
         conjunctions = [];
-        # print values
         for x in values:
-            # print x;
             x = x.split("_set");
             attribute = x[0];
             voa = x[1].replace("([","").replace("])","").replace("'","").split(", ");
-            # print attribute;
-            # print voa
             if len(voa)==1:
                 rule_string = "equal("+attribute+"(current),"+voa[0]+")";
             else:
                 for y in voa:
-                    # print "Index of y : ",voa.index(y);
                     if voa.index(y)==0:
                         rule_string = "equal("+attribute+"(current),"+y+")"
-                        # print "1",rule_string;
                     else:
                         rule_string = "or("+rule_string+",equal("+attribute+"(current),"+y+"))";
-                        # print "2",rule_string;
             conjunctions.append(rule_string);
                     
-        # print "Rules : ",conjunctions;
         voa = conjunctions;
         rule_string2 = "";
         if len(voa)==1:
                 rule_string2 = voa[0];
         else:
             for y in voa:
-                # print "Index of y : ",voa.index(y);
                 if voa.index(y)==0:
                     rule_string2 = y;
-                    # print "1",rule_string;
                 else:
                     rule_string2 = "and("+rule_string2+","+y+")";
 
-        # print rule_string2;
         return rule_string2;
 
     def det_periodicity(self,correct_list,incorrect_list):
