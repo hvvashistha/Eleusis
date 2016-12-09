@@ -509,7 +509,7 @@ class Game:
     	#==================================================================================================================================================================================================
         # Initializing Date Structures to be used in this function
         #==================================================================================================================================================================================================
-        final_rule  = {};
+        final_rule  = [];
         
         store_dec   = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
         store_dec_2 = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
@@ -589,7 +589,7 @@ class Game:
         # print len(store_dec_2)
         for x in store_dec_2:
         	for k,v in x.iteritems():
-        		final_rule[k] = [];
+        		
         		l = [set() for x in range(7)]
         		
         		for i2 in range(len(v)):
@@ -663,16 +663,28 @@ class Game:
 			#print "=========================================================="
 			if l!=[set([]), set([]), set([]), set([]), set([]), set([]), set([])]:
 				# print l;
+
 				count = 0;
+				attr_list = [];
 				for x in l:
+					
 					if x!=set():
 						
-						final_rule[k].append(functions['attribute'][count+3].__name__+"_"+str(x))
+						attr_list.append(functions['attribute'][count+3].__name__+"_"+str(x))
 					
 					count = count + 1;
-				print k,final_rule[k]
-
-				# print final_rule;
+				# print k, attr_list;
+				temp_dict = {}
+				temp_dict[k] = attr_list;
+				final_rule.append(temp_dict);
+	# print final_rule
+	final_rule_list=[];
+	for i in final_rule:
+		# print i;
+		final_rule_list.append(self.create_final_rule_special(i));
+		# print "---------------------------------------------------------------------------"
+	self.create_rule_combo(final_rule_list);
+	# print final_rule;
 				# print "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
 				# print self.create_final_rule(final_rule)
 				# print "====================================================================================================================================================================================="
@@ -686,7 +698,22 @@ class Game:
 
 
 	
-    
+    def create_rule_combo(self,final_rule_list):
+
+    	all_rules_list = [];
+
+    	for i in final_rule_list:
+    		all_rules_list.append(i);
+
+    	for i in range(0,len(final_rule_list)-1):
+    		for j in range(i+1,len(final_rule_list)):
+    			all_rules_list.append(final_rule_list[i].rstrip(")")+final_rule_list[j]+")");
+
+    	for x in all_rules_list:
+    		print x;
+    		print "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    			
+
 
 	#==================================================================================================================================================================================================
     # This code converts the rule from Dictionary format to Expression format
@@ -705,6 +732,16 @@ class Game:
             rule = rule + ")"
         return rule
 
+    def create_final_rule_special(self,final_rule):
+        rule = ""
+        for k,v in final_rule.items():
+
+            rule = rule + self.process_key(k)
+            rule = rule + self.process_values(v)
+            rule = rule + ",)"
+       
+        return rule
+
     def process_key(self,key):
         str1 = key.split("_")
         rule_string = "if(equal("
@@ -713,6 +750,7 @@ class Game:
                 rule_string=rule_string+(str(str1[k])+"(previous),")
             else:
                 rule_string=rule_string+(str1[k]+"),")
+        # print "KEY : ",rule_string;
         return rule_string
 
     def process_values(self, values):
@@ -742,7 +780,7 @@ class Game:
                     rule_string2 = y;
                 else:
                     rule_string2 = "and("+rule_string2+","+y+")";
-
+        # print "VALUE : ",rule_string2;
         return rule_string2;
 
     def det_periodicity(self,correct_list,incorrect_list):
@@ -905,7 +943,7 @@ if __name__ == "__main__":
     print "Calculating..."
     time_start = datetime.datetime.now()
     game = Game(Card(sys.argv[1][:-1], sys.argv[1][len(sys.argv[1])-1:]), rule=sys.argv[2], randomPlay = True)
-    game.playNext(200)
+    game.playNext(50)
 
     # print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
     # print game.guessed_rule_dict
