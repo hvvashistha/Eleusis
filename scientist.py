@@ -119,9 +119,10 @@ class Scientist:
         self.thinker = None
         self.get_cards(14)
         self.last_play_positive = True
+        self.setup_thinker(cards, dealer_rule)
         for card in cards:
             self.play(card)
-        self.setup_thinker(cards, dealer_rule)
+        
 
     #region Setup methods
 
@@ -170,6 +171,7 @@ class Scientist:
     #	This also updates the board_state.
     #	Returns true or false
     def play(self, card):
+        self.thinker.playNext(think.Card(card[:-1], card[-1]))
         if len(self.board) > 0:
             if self.evaluate_card(card, self.thinker.dealer_rule):
                 self.board.append((card, []))
@@ -188,7 +190,6 @@ class Scientist:
             return self.thinker.guessed_rule
         else:
             card = self.get_best_card()
-            self.thinker.playNext(think.Card(card[:-1], card[-1]))
             correct = self.play(card)
             self.get_cards(1)
             if correct:                
@@ -203,27 +204,7 @@ class Scientist:
     #	Returns a value for the score
     def score(self):
         score = 0
-        for card in self.board:
-            score = score + 1 + (2 * len(card[1]))
-        if not(self.player_rule_str == self.dealer_rule_str):
-            score = score + 15
-        cards = []
-        for card in self.board:
-            cards.append(card[0])
-        original_board = list(self.board)
-        self.board = []
-        # play with the player rule applied
-        for card in original_board:
-            self.play(card[0], self.player_rule)
-        print "\nThe Board State (using the player rule and only playing the correct cards for the dealer rule): "
-        print self.board_state() + "\n"
-        # add to the score if there is a difference
-        correct_dealer = len(original_board)
-        correct_player = len(self.board)
-        efficiency = (correct_player / float(correct_dealer)) * 100.0
-        if not(correct_dealer == correct_player):
-            score = score + 30
-        print "\nEfficiency: " + str(efficiency)
+        
         return score
 
     #end Main Functions
