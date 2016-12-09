@@ -153,7 +153,7 @@ class Scientist:
     def rule(self):
         if len(self.thinker.guessed_rules) > 0:
             rules = self.prioritize_rules(self.thinker.guessed_rules)
-            return rules[0][0]
+            return rules[0]
         return None
     
     #	This function will create the board state in string representation
@@ -331,9 +331,30 @@ class Scientist:
     #	Returns true or false depending on the player needing to decide
     def decide_success(self):
         current_rule = self.rule()
+        history_length = len(self.thinker.history)
         if not current_rule is None:
-            if len(self.board) > 20 and current_rule.evaluate(board):
-                if rule.evaluation == 100 or self.total_moves > 200:
+            try:
+                parsed_rule = new_eleusis.parse(current_rule[0])
+                #if there have been more than 20 plays
+                if history_length > 20:
+                    # if the current rule has 100 efficiency
+                    if current_rule[1] == 100:
+                        all_match = True
+                        # for all the cards that have been played, 
+                        # check if the player rule is equivalent to dealer rule
+                        for card in self.thinker.history:
+                            player = self.evaluate_card(str(card), parsed_rule)
+                            dealer = self.evaluate_card(str(card), self.thinker.dealer_rule)
+                            if player != dealer:
+                                all_match = False
+                                break
+                        if all_match or history_length >= 200:
+                            return True
+                    # if the current rule is not as efficient as we like, show rule if 200 plays have been made
+                    elif history_length >= 200:
+                            return True
+            except:
+                if history_length >= 200:
                     return True
         return False
 
