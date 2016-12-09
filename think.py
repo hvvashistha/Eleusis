@@ -601,8 +601,8 @@ class Game:
         for i in final_rule_list:
             all_rules_list.append(i);
 
-        for i in range(0,len(final_rule_list)-1):
-            for j in range(i+1,len(final_rule_list)):
+        for i in range(0, len(final_rule_list) - 1):
+            for j in range(i + 1, len(final_rule_list)):
                 all_rules_list.append(final_rule_list[i].rstrip(")") + final_rule_list[j] + ")");
 
         return all_rules_list

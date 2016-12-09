@@ -154,7 +154,7 @@ class Scientist:
     def rule(self):
         if len(self.thinker.guessed_rules) > 0:
             rules = self.prioritize_rules(self.thinker.guessed_rules)
-            return rules[0]
+            return rules[-1]
         return None
     
     #	This function will create the board state in string representation
@@ -187,7 +187,7 @@ class Scientist:
     #	and choosing when to declare success.
     def scientist(self):
         if self.decide_success() or len(self.thinker.history) >= 200:
-            return self.thinker.guessed_rule
+            return self.rule()[0]
         else:
             card = self.get_best_card()
             correct = self.play(card)
@@ -241,7 +241,7 @@ class Scientist:
         try:
             correct_indeces = []
             incorrect_indeces = []
-            player_rule = new_eleusis.parse(self.thinker.guessed_rule)
+            player_rule = new_eleusis.parse(self.rule())
             # for all the cards in the hand, assign correct or 
             #   incorrect against the player's current rule
             for i in range(0, len(self.hand)):
@@ -292,21 +292,39 @@ class Scientist:
                 value = self.evaluate_rule(parsed_rule)
                 evaluation.append((rule, value))
             except:
-                evaluation.append((rule, 0.0))
-        return evaluation
+                evaluation.append((rule, (0.0, 100.0)))
+        return sorted(evaluation, key = lambda tuple: (tuple[1][0], tuple[1][1]))
 
 
-    #	Evaluates a rule based on how many correct and wrong cards it produced.
-    #	Returns the value for the evaluation (0 - 100)
-    def evaluate_rule(self, rule):
+    # Gets the efficiency of a provided rule
+    def get_efficiency(self, rule):
         total = 0
         correct = 0
         for card in self.board:
             total = total + 1
             if self.evaluate_card(card[0], rule):
                 correct = correct + 1
-        return (correct / total) * 100
+        return (correct / float(total)) * 100
+    
+    
+    # Gets the logical equivalence of a provided rule
+    def get_equivalence(self, rule):
+        match = 0
+        total = len(self.thinker.history)
+        for card in self.thinker.history:
+            player = self.evaluate_card(str(card[0]), rule)
+            dealer = self.evaluate_card(str(card[0]), self.thinker.dealer_rule)
+            if dealer == player:
+                match = match + 1
+        return (match / float(total)) * 100
 
+
+    #	Evaluates a rule based on how many correct and wrong cards it produced.
+    #	Returns the value for the efficiency and equivalence (0 - 100)
+    def evaluate_rule(self, rule):
+        efficiency = self.get_efficiency(rule)        
+        equivalence = self.get_equivalence(rule)
+        return (efficiency, equivalence)
 
     #	Calculates if the player should decide success
     #	Returns true or false depending on the player needing to decide
@@ -318,22 +336,15 @@ class Scientist:
                 parsed_rule = new_eleusis.parse(current_rule[0])
                 #if there have been more than 20 plays
                 if history_length > 20:
-                    # if the current rule has 100 efficiency
-                    if current_rule[1] == 100:
-                        all_match = True
-                        # for all the cards that have been played, 
-                        # check if the player rule is equivalent to dealer rule
-                        for card in self.thinker.history:
-                            player = self.evaluate_card(str(card), parsed_rule)
-                            dealer = self.evaluate_card(str(card), self.thinker.dealer_rule)
-                            if player != dealer:
-                                all_match = False
-                                break
-                        if all_match or history_length >= 200:
-                            return True
+                    # if the current rule has 100 efficiency and 100 equivalence
+                    if current_rule[1][0] == 100 and current_rule[1][1] == 100:
+                        return True
+                    # if the current rule has 100 efficiency or 100 equivalence
+                    elif current_rule[1][0] == 100 or current_rule[1][1] == 100:
+                        return True
                     # if the current rule is not as efficient as we like, show rule if 200 plays have been made
                     elif history_length >= 200:
-                            return True
+                        return True
             except:
                 if history_length >= 200:
                     return True
