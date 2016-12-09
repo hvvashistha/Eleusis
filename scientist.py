@@ -79,8 +79,9 @@ def main(args):
         print player.board_state()
         print "\n"
     
-    
     print "\nGame Ended"
+    print "\nPlayer's Rules Is:"
+    print player.rule()
 
     
     # print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
@@ -305,10 +306,12 @@ class Scientist:
         evaluation = []
         for rule in rules:
             try:
-                evaluation.append((rule, self.evaluate_rule(new_eleusis.parse(rule))))
+                parsed_rule = new_eleusis.parse(rule)
+                value = self.evaluate_rule(parsed_rule)
+                evaluation.append((rule, value))
             except:
                 evaluation.append((rule, 0.0))
-        return sort(evaluation)
+        return evaluation
 
 
     #	Evaluates a rule based on how many correct and wrong cards it produced.
@@ -318,7 +321,7 @@ class Scientist:
         correct = 0
         for card in self.board:
             total = total + 1
-            if rule.evaluate(card[0]):
+            if self.evaluate_card(card[0], rule):
                 correct = correct + 1
         return (correct / total) * 100
 

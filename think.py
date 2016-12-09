@@ -588,7 +588,7 @@ class Game:
             # print i;
             final_rule_list.append(self.create_final_rule_special(i));
             # print "---------------------------------------------------------------------------"
-        self.create_rule_combo(final_rule_list);
+        self.guessed_rules = self.create_rule_combo(final_rule_list);
 
                 
     #=========================================================================#
@@ -605,9 +605,7 @@ class Game:
             for j in range(i+1,len(final_rule_list)):
                 all_rules_list.append(final_rule_list[i].rstrip(")") + final_rule_list[j] + ")");
 
-        for x in all_rules_list:
-            print x;
-            print 
+        return all_rules_list
      
     def create_final_rule(self, final_rule):
         rule = ""
@@ -623,21 +621,19 @@ class Game:
     def create_final_rule_special(self,final_rule):
         rule = ""
         for k,v in final_rule.items():
-
             rule = rule + self.process_key(k)
             rule = rule + self.process_values(v)
             rule = rule + ",)"
-       
         return rule
 
     def process_key(self, key):
         str1 = key.split("_")
         rule_string = "if(equal("
         for k in range(len(str1)):
-            if k%2==0:
-                rule_string=rule_string+(str(str1[k])+"(previous),")
+            if k % 2 == 0:
+                rule_string = rule_string + (str(str1[k]) + "(previous),")
             else:
-                rule_string=rule_string+(str1[k]+"),")
+                rule_string = rule_string + (str1[k] + "),")
         return rule_string
 
     def process_values(self, values):
