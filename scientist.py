@@ -50,36 +50,37 @@ def main(args):
 
     end = False
     while not end:
-        print "Player Hand: " + str(player.hand)
         player_play = player.scientist()
         if not new_eleusis.is_card(player_play):
             end = True
 
-        print "Adversary 1 Hand: " + str(adversary1.hand)
         adv1 = adversary1.play()
         if new_eleusis.is_card(adv1):
             player.play(adv1)   
         else:
+            print "\nAdversary 1 wants to show the rule: "
+            print adv1
             end = True
 
-        print "Adversary 2 Hand: " + str(adversary2.hand)
         adv2 = adversary2.play()
         if new_eleusis.is_card(adv2):
             player.play(adv2)   
         else:
+            print "\nAdversary 2 wants to show the rule: "
+            print adv2
             end = True
 
-        print "Adversary 3 Hand: " + str(adversary3.hand)
         adv3 = adversary3.play()
         if new_eleusis.is_card(adv3):
             player.play(adv3)   
         else:
+            print "\nAdversary 3 wants to show the rule: "
+            print adv3
             end = True
 
         print player.board_state()
         print "\n"
     
-    print "\nGame Ended"
     print "\nPlayer's Rules Is:"
     print player.rule()
 
