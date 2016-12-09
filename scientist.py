@@ -50,32 +50,37 @@ def main(args):
 
     end = False
     while not end:
+        print "Player Hand: " + str(player.hand)
         player_play = player.scientist()
         if not new_eleusis.is_card(player_play):
             end = True
 
+        print "Adversary 1 Hand: " + str(adversary1.hand)
         adv1 = adversary1.play()
         if new_eleusis.is_card(adv1):
             player.play(adv1)   
         else:
             end = True
 
+        print "Adversary 2 Hand: " + str(adversary2.hand)
         adv2 = adversary2.play()
         if new_eleusis.is_card(adv2):
             player.play(adv2)   
         else:
             end = True
 
+        print "Adversary 3 Hand: " + str(adversary3.hand)
         adv3 = adversary3.play()
         if new_eleusis.is_card(adv3):
             player.play(adv3)   
         else:
             end = True
 
-        print "Round Ended"
         print player.board_state()
-
-    print "Game Ended"
+        print "\n"
+    
+    
+    print "\nGame Ended"
 
     
     # print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
@@ -122,7 +127,7 @@ class Scientist:
     def setup_thinker(self, cards, dealer_rule):
         card_objs = []
         for card in cards:
-            card_objs.append(think.Card(card[0], card[1]))
+            card_objs.append(think.Card(card[:-1], card[-1]))
         self.thinker = think.Game(card_objs, dealer_rule, randomPlay = False)
 
     # This function gets a count of random cards and adds it to the hand
@@ -152,9 +157,9 @@ class Scientist:
     #	This function will create the board state in string representation
     #	Returns string for the board
     def board_state(self):
-        board = "{\n"
+        board = "\nRound Ended: {\n"
         for card in self.board:
-            board = board + "(" + card[0] + ", " + str(card[1]) + ")\n"
+            board = board + "\t {" + card[0] + "} , Incorrect Cards " + str(card[1]) + "\n"
         board = board.strip(" ").strip(",")
         board = board + "}"
         return board
@@ -181,8 +186,9 @@ class Scientist:
             return self.thinker.guessed_rule
         else:
             card = self.get_best_card()
-            self.thinker.playNext(think.Card(card[0], card[1]))
-            correct = self.play(card)    
+            self.thinker.playNext(think.Card(card[:-1], card[-1]))
+            correct = self.play(card)
+            self.get_cards(1)
             if correct:                
                 self.correct_moves = self.correct_moves + 1
             else:
@@ -221,7 +227,9 @@ class Scientist:
     #end Main Functions
 
 
+
     #region Helper Functions
+
 
     # Evaluates a card with the provided rule.
     # Returns True or False.
@@ -246,35 +254,41 @@ class Scientist:
     #	Applies constrainsts at this stage.
     #	Returns the card to play.
     def get_best_card(self):
+        index = -1
         try:
-            correct_cards = []
-            incorrect_cards = []
+            correct_indeces = []
+            incorrect_indeces = []
             player_rule = new_eleusis.parse(self.thinker.guessed_rule)
             # for all the cards in the hand, assign correct or 
             #   incorrect against the player's current rule
-            for card in self.hand:
-                if evaluate_card(card, player_rule):
-                    correct_cards.append(card)
+            for i in range(0, len(self.hand)):
+                if evaluate_card(self.hand[i], player_rule):
+                    correct_indeces.append(i)
                 else:
-                    incorrect_cards.append(card)
+                    incorrect_indeces.append(i)
             # if the last play made was a positive test, play a negative
             if self.last_play_positive:
                 self.last_play_positive = False
                 # if there are incorrect cards in the hand
-                if len(incorrect_cards) > 0:
-                    return incorrect_cards[int(round(random.random() * (len(self.incorrect_cards) - 1)))]
+                if len(incorrect_indeces) > 0:
+                    index = incorrect_indeces[int(round(random.random() * (len(self.incorrect_indeces) - 1)))]
                 else:
-                    return correct_cards[int(round(random.random() * (len(self.correct_cards) - 1)))]
+                    index = correct_indeces[int(round(random.random() * (len(self.correct_indeces) - 1)))]
             else:
                 self.last_play_positive = True
                  # if there are correct cards in the hand
-                if len(correct_cards) > 0:
-                    return correct_cards[int(round(random.random() * (len(self.correct_cards) - 1)))]
+                if len(correct_indeces) > 0:
+                    index = correct_indeces[int(round(random.random() * (len(self.correct_indeces) - 1)))]
                 else:
-                    return incorrect_cards[int(round(random.random() * (len(self.incorrect_cards) - 1)))]
+                    index = incorrect_indeces[int(round(random.random() * (len(self.incorrect_indeces) - 1)))]
         except:
-            return self.get_random_card()
+            # if the rule evaluation fails
+            index = -1
+        
+        #play the card with the corresponding index
+        return self.get_card_from_hand(index)
     
+
     #	Generates rules that apply to the current state of the board. 
     #	Only a decent amount will be chosen sicne there could be infinute possible rules.
     #	Applies constraints at this stage.
@@ -296,6 +310,7 @@ class Scientist:
                 evaluation.append((rule, 0.0))
         return sort(evaluation)
 
+
     #	Evaluates a rule based on how many correct and wrong cards it produced.
     #	Returns the value for the evaluation (0 - 100)
     def evaluate_rule(self, rule):
@@ -307,6 +322,7 @@ class Scientist:
                 correct = correct + 1
         return (correct / total) * 100
 
+
     #	Calculates if the player should decide success
     #	Returns true or false depending on the player needing to decide
     def decide_success(self):
@@ -317,16 +333,21 @@ class Scientist:
                     return True
         return False
 
+
     #	Builds the list of all possible cards
     def build_all_cards(self):
         for value in card_values:
             for suit in card_suits:
                 self.all_cards.append(value + suit)
 
-    #	Gets a random card to play from the hand
+
+    #	Gets a to play from the hand
     #	Returns a card.
-    def get_random_card(self):
-        return self.hand.pop(int(round(random.random() * (len(self.hand) - 1))))
+    def get_card_from_hand(self, index):
+        if index < 0:
+            return self.hand.pop(int(round(random.random() * (len(self.hand) - 1))))
+        else:
+            return self.hand.pop(index)
 
     #end Helper Functions
 

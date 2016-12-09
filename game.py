@@ -50,7 +50,9 @@ class Adversary(object):
             rule += cond + "(" + prop + "(current), " + prop + "(previous)), "
             return rule[:-2]+")"
         else:
-            return self.hand[randint(0, len(self.hand)-1)]
+            card = self.hand.pop(randint(0, len(self.hand)-1))
+            self.hand.append(generate_random_card())
+            return card
 
 
 ## The players in the game

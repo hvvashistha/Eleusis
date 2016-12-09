@@ -388,7 +388,7 @@ class Game:
 
         
 
-    def combine_incorrect_dictionary(self,correct_list,incorrect_list):
+    def combine_incorrect_dictionary(self, correct_list, incorrect_list):
         
         #===============================================================================#
         # Code to map all the negative events and their attributes after a correct card #
@@ -398,14 +398,13 @@ class Game:
         
         incorrect_dict = {}
         for i,v in incorrect_list.iteritems():
-
             l = []
             for k in range(3,10):
                 temp = set()
                 for j in v:
                     temp.add(j[k])
                 l.append(temp)
-            incorrect_dict[i-1] = l
+            incorrect_dict[i - 1] = l
         
         return incorrect_dict
 
@@ -421,175 +420,194 @@ class Game:
         # mapping the trial decompositions to the attributes of the next card.                      #
         # Removing the inconsistencies between different trial decompositions to give out the rule  #
         #===========================================================================================#
-        
-
-
 
         #==========================================================#
-        # Initializing Date Structures to be used in this function #
+        # Initializing Data Structures to be used in this function #
         #==========================================================#
-        final_rule  = {}
+        final_rule  = [];
         
-        store_dec   = [[0 for x in range(len(correct_list)-1)] for y in range(10)]
-        store_dec_2 = [[0 for x in range(len(correct_list)-1)] for y in range(10)]
-        store_dec_3 = [[0 for x in range(len(correct_list)-1)] for y in range(10)]
-        store_dec_4 = [[0 for x in range(len(correct_list)-1)] for y in range(10)]
-        visibility  = [[0 for x in range(7)] for y in range(7)]
+        store_dec   = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
+        store_dec_2 = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
+        store_dec_3 = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
+        store_dec_4 = [[0 for x in range(len(correct_list)-1)] for y in range(10)];
+        visibility  = [[0 for x in range(7)] for y in range(7)];
 
         for j in range(3,10):
-            store_dec[j] = {}
+            store_dec[j] = {};
             for i in range(len(correct_list)-1):
-                store_dec[j][correct_list[i][j]] = []
+                store_dec[j][correct_list[i][j]] = [];
         for j in range(3,10):
-            store_dec_2[j] = {}
+            store_dec_2[j] = {};
             
         for j in range(3,10):
-            store_dec_3[j] = {}
+            store_dec_3[j] = {};
             for i in range(len(correct_list)-1):
-                store_dec_3[j][correct_list[i][j]] = []
+                store_dec_3[j][correct_list[i][j]] = [];
         for j in range(3,10):
-            store_dec_4[j] = {}
+            store_dec_4[j] = {};
             for i in range(len(correct_list)-1):
-                store_dec_4[j][correct_list[i][j]] = []
+                store_dec_4[j][correct_list[i][j]] = [];
        
-        #=======================================================================#
-        # This code maps each of the attributes of the previous correct card to #
-        # the list of all correct cards following that attribute                #
-        #=======================================================================#
+        #==================================================================================================================================================================================================
+        # This code maps each of the attributes of the previous correct card to the list of all correct cards following that attribute
+        #
+        #==================================================================================================================================================================================================
         for j in range(3,10):
-            store_dec[j] = {}
+            store_dec[j] = {};
             
 
         for j in range(3,10):
             for i in range(len(correct_list)-1):
-                var_attribute = functions['attribute'][j].__name__
-                new_key = var_attribute +"_"+ str(correct_list[i][j])
-                store_dec[j][new_key] = []
+                var_attribute = functions['attribute'][j].__name__;
+                new_key = var_attribute +"_"+ str(correct_list[i][j]);
+                store_dec[j][new_key] = [];
 
         for j in range(3,10):
             
             for i in range(len(correct_list)-1):
-                var_attribute = functions['attribute'][j].__name__
-                new_key = var_attribute +"_"+ str(correct_list[i][j])
-                store_dec[j][new_key].append(correct_list[i+1])
-        # 	print store_dec
+                var_attribute = functions['attribute'][j].__name__;
+                new_key = var_attribute +"_"+ str(correct_list[i][j]);
+                store_dec[j][new_key].append(correct_list[i+1]);
+        # 	print store_dec;
 
 
-        #===========================================================================#
-        # This code maps each of the attributes of the previous correct card to the #
-        # list of all incorrect cards following that attribute                      #
-        #===========================================================================#
+        #==================================================================================================================================================================================================
+        # This code maps each of the attributes of the previous correct card to the list of all incorrect cards following that attribute
+        #
+        #==================================================================================================================================================================================================
         for j in range(3,10):
             for i in range(len(correct_list)-1):
-                
-                store_dec_3[j][correct_list[i][j]].append(incorrect_dict[i])
-        
-         
+                store_dec_3[j][correct_list[i][j]].append(incorrect_dict[i]);
         
 
         for j in range(3,8):
             for k,v in store_dec[j].iteritems():
-                # print k,v
-                
                 store_dec_2[j][k] = []
                 for x in range(3,10):
-                    l = set()
+                    l = set();
                     for z in v:
                         l.add(z[x])
-                    store_dec_2[j][k].append(l)
-
+                    store_dec_2[j][k].append(l);
 
         del store_dec_2[:3]
         del store_dec_4[:3]
         # for x in store_dec_2:
-        # 	print x
+        # 	print x;
         # 	print "======================================================================"
-        
+
         # print len(store_dec_2)
         for x in store_dec_2:
-            self.guessed_rules = []
             for k,v in x.iteritems():
-                final_rule[k] = []
+
                 l = [set() for x in range(7)]
                 
                 for i2 in range(len(v)):
                     if i2==0:
                         if len(v[i2]) == 4:
-                            l[i2]=set()
+                            l[i2]=set();
                         elif len(v[i2]) == 2 and (v[i2]==set(['S', 'C'])):
-                            l[i2]=set()
-                            l[3].add('B')
+                            l[i2]=set();
+                            l[3].add('B');
                         elif len(v[i2]) == 2 and (v[i2]==set(['D', 'H'])):
-                            l[i2]=set()
-                            l[3].add('R')
+                            l[i2]=set();
+                            l[3].add('R');
                         else:
-                            l[i2]=v[i2]
+                            l[i2]=v[i2];
 
                     if i2==1:
                         if len(v[i2]) == 2:
 
-                            l[i2]=set()
+                            l[i2]=set();
                         else:
-                            l[i2]=v[i2]
+                            l[i2]=v[i2];
 
                     if i2==2:
                         if len(v[i2]) == 2:
-                            l[i2]=set()
+                            l[i2]=set();
                         else:
-                            l[i2]=v[i2]
+                            l[i2]=v[i2];
 
                     if i2==3:
                         if len(v[i2]) == 2:
-                            l[i2]=set()
+                            l[i2]=set();
                         else:
-                            l[i2]=v[i2]
+                            l[i2]=v[i2];
 
                     if i2==4:
-                        even_count = 0
-                        odd_count = 0
+                        even_count = 0;
+                        odd_count = 0;
                         if len(v[i2]) == 13:
-                            l[i2]=set()
+                            l[i2]=set();
                         else:
                             for x in v[4]:
                                 if x%2==0:
-                                    even_count = even_count + 1
+                                    even_count = even_count + 1;
                                 else:
-                                    odd_count = odd_count + 1
+                                    odd_count = odd_count + 1;
 
-
-                            isRoyal_set = set([1,2,3,4,5,6,7,8,9,10])
-                            not_isRoyal_set = set([11,12,13])
+                            isRoyal_set = set([1,2,3,4,5,6,7,8,9,10]);
+                            not_isRoyal_set = set([11,12,13]);
 
                             if len(v[i2]) == even_count:
                                 if True not in l[2] and len(l[2])==0:
-                                    l[2].add(True)
+                                    l[2].add(True);
                             elif len(v[i2]) == odd_count:
                                 if False not in l[2] and len(l[2])==0:
-                                    l[2].add(False)
+                                    l[2].add(False);
                             elif v[i2] == isRoyal_set:
                                 if True not in l[1] and len(l[1])==0:
-                                    l[1].add(True)
+                                    l[1].add(True);
                             elif v[i2] == not_isRoyal_set:
                                 if True not in l[1] and len(l[1])==0:
-                                    l[1].add(False)
+                                    l[1].add(False);
                             else:
-                                pass
+                                pass;
 
-                if l != [set([]), set([]), set([]), set([]), set([]), set([]), set([])]:
-                    count = 0
+                #print k,l;
+                #print "=========================================================="
+                if l!=[set([]), set([]), set([]), set([]), set([]), set([]), set([])]:
+                    # print l;
+
+                    count = 0;
+                    attr_list = [];
                     for x in l:
-                        if x != set():
-                            final_rule[k].append(functions['attribute'][count+3].__name__+"_"+str(x))
-                        count = count + 1
-                    print k, final_rule[k]
-                    self.guessed_rules.append(self.create_final_rule(final_rule[k]))
+                    
+                        if x!=set():
+                        
+                            attr_list.append(functions['attribute'][count+3].__name__+ "_" + str(x))
+                    
+                        count = count + 1;
+                    # print k, attr_list;
+                    temp_dict = {}
+                    temp_dict[k] = attr_list;
+                    final_rule.append(temp_dict);
 
-
+        # print final_rule
+        final_rule_list=[];
+        for i in final_rule:
+            # print i;
+            final_rule_list.append(self.create_final_rule_special(i));
+            # print "---------------------------------------------------------------------------"
+        self.create_rule_combo(final_rule_list);
 
                 
     #=========================================================================#
     # This code converts the rule from Dictionary format to Expression format #
     #=========================================================================#
+    
+    def create_rule_combo(self, final_rule_list):
+        all_rules_list = [];
+
+        for i in final_rule_list:
+            all_rules_list.append(i);
+
+        for i in range(0,len(final_rule_list)-1):
+            for j in range(i+1,len(final_rule_list)):
+                all_rules_list.append(final_rule_list[i].rstrip(")") + final_rule_list[j] + ")");
+
+        for x in all_rules_list:
+            print x;
+            print 
      
     def create_final_rule(self, final_rule):
         rule = ""
@@ -600,6 +618,16 @@ class Game:
         rule = rule.strip(',')
         for i in range(len(final_rule)):
             rule = rule + ")"
+        return rule
+
+    def create_final_rule_special(self,final_rule):
+        rule = ""
+        for k,v in final_rule.items():
+
+            rule = rule + self.process_key(k)
+            rule = rule + self.process_values(v)
+            rule = rule + ",)"
+       
         return rule
 
     def process_key(self, key):
@@ -652,6 +680,10 @@ class Game:
             current_item = next_item
         yield (prev_item, current_item, None)
 
+    #=========================================================================#
+    # This code plays the card that is provided and updates the board         #
+    #=========================================================================#    
+
     def playNext(self, card):
         lastPlays = []
         events = []
@@ -677,7 +709,8 @@ class Game:
         self.recordPlay(events, correct)
         #self.printRecord()
         self.setup_decompose()
-
+    
+    # This function class decomposition
     def setup_decompose(self):
         #===========================================================================#
         # correct_list is a list of Cards that were correct                         #
