@@ -32,3 +32,6 @@ NON PERIODIC RULES -
 even card followed by red card
 odd card followed by black card
 python eleusis_test.py 3D "if(odd(previous),equal(color(current),R),equal(color(current),B))"
+
+
+python eleusis_test.py 2D "or(and(equal(color(current),R),even(current)),and(equal(color(current),B),odd(current)))"
