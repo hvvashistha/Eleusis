@@ -12,7 +12,7 @@ Running the program:
 
 card: \<value\>\<suit\>
 
-python \<god's card\> '\<rule\>'
+python scientist.py \<god's card\> '\<rule\>'
 
 All values are in caps
 
