@@ -99,32 +99,32 @@ class Selector:
         return len(self.reference)
 
     def __eq__(self, other):
-        isset = isinstance(other, set)
+        isset = isinstance(other, set) or isinstance(other, frozenset)
         return ((isset or self.variable == other.variable) and
                 self.getReference() == (other if isset else other.getReference()))
 
     def __lt__(self, other):
-        isset = isinstance(other, set)
+        isset = isinstance(other, set) or isinstance(other, frozenset)
         return ((isset or self.variable == other.variable) and
                 self.getReference() < (other if isset else other.getReference()))
 
     def __gt__(self, other):
-        isset = isinstance(other, set)
+        isset = isinstance(other, set) or isinstance(other, frozenset)
         return ((isset or self.variable == other.variable) and
                 self.getReference() > (other if isset else other.getReference()))
 
     def __le__(self, other):
-        isset = isinstance(other, set)
+        isset = isinstance(other, set) or isinstance(other, frozenset)
         return ((isset or self.variable == other.variable) and
                 self.getReference() <= (other if isset else other.getReference()))
 
     def __ne__(self, other):
-        isset = isinstance(other, set)
+        isset = isinstance(other, set) or isinstance(other, frozenset)
         return ((isset or self.variable == other.variable) and
                 self.getReference() != (other if isset else other.getReference()))
 
     def __ge__(self, other):
-        isset = isinstance(other, set)
+        isset = isinstance(other, set) or isinstance(other, frozenset)
         return ((isset or self.variable == other.variable) and
                 self.getReference() >= (other if isset else other.getReference()))
 
