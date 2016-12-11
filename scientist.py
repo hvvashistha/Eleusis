@@ -20,8 +20,7 @@ import sys
 import random
 import new_eleusis
 import datetime
-import think
-import game
+import thinker
 
 # globals
 card_values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
@@ -44,7 +43,7 @@ def main(args):
         cards.append(args[i])
 
     player = Scientist(cards, args[-1])
-    adversaries = [game.Adversary(), game.Adversary(), game.Adversary()]
+    adversaries = [Adversary(), Adversary(), Adversary()]
     rounds = 0
     end = -2
 
@@ -67,16 +66,17 @@ def main(args):
             print "\nPlayer wants to show the rule."
             end = -1
             break
-        
+
+        history_length = len(player.thinker.history)
         # All the adversaries make their moves
         for i in range(0, len(adversaries)):
             move_time_start = datetime.datetime.now()
-            play = adversaries[i].play()
+            play = adversaries[i].play(history_length)
             move_time_end = datetime.datetime.now()
             if new_eleusis.is_card(play):
                 print "Adversary " + str(i + 1) + " Played: " + play + " [time taken (h:m:s.ms): " + str(move_time_end - move_time_start) + "]"
                 is_correct = player.play(play)
-                adversaries[i].update_score(is_correct, player.thinker.history)
+                adversaries[i].update_score(is_correct, history_length)
             else:
                 print "\nAdversary " + str(i + 1) + " wants to show the rule."
                 print "\nEnding Board: " + player.board_state()
@@ -97,7 +97,10 @@ def main(args):
             name = name + " (called end of game)"
         print name 
         print "\tRule: " + str(adversaries[index].rule)
-        print "\tScore: " + str(score(player, adversaries[index].rule, adversaries[index].score, index == end))
+        adv_score = score(player, adversaries[index].rule, adversaries[index].score, index == end)
+        print "\tEfficiency: " + str(adv_score[1]) + " %"
+        print "\tEquivalence: " + str(adv_score[2]) + " %"
+        print "\tScore: " + str(adv_score[0])
         print "-----------------------------------------"
     
     # Print the information for the player's rule and score
@@ -108,14 +111,14 @@ def main(args):
     print "Getting Player's Rule..."
     player.get_rule()
     if player.rule is None:
-        print "\tRule: None (There were not enough correct cards to determine the rule)"
-        print "\n\tPlayer's Score: " + str(get_score(False, end == -1))
+        print "\tRule: " + player.generate_random_rule()
+        print "\n\tPlayer's Score: " + str(player.get_score(False, end == -1))
     else:
         # if the player's rule is npt empty
         print "\tRule: " + str(player.rule[0])
-        print "\tEfficiency: " + str(player.rule[1][0]) + "%"
-        print "\tEquivalency: " + str(player.rule[1][1]) + "%"
-        print "\tConfidence: " + str((player.rule[1][0] / 100) * (player.rule[1][1] / 100) * 100) + "%"
+        print "\tEfficiency: " + str(player.rule[1][0]) + " %"
+        print "\tEquivalence: " + str(player.rule[1][1]) + " %"
+        print "\tConfidence: " + str((player.rule[1][0] / 100) * (player.rule[1][1] / 100) * 100) + " %"
         input = ""
         while not(input == "Y" or input == "y" or input == "N" or input == "n"):
             input = raw_input("\nWas the player's rule logically equivalent? (Y/N):")
@@ -124,12 +127,14 @@ def main(args):
 
 # Gets the total score based on a rule and the score for the plays
 def score(scientist, rule, score, is_ending_player):
+    efficiency = 0.0
+    equivalence = 0.0
     if rule is None:
         score = score + 30
     try:
         parsed_rule = new_eleusis.parse(rule)
-        efficiency = self.get_efficiency(parsed_rule)
-        equivalence = self.get_equivalence(parsed_rule)
+        efficiency = scientist.get_efficiency(parsed_rule)
+        equivalence = scientist.get_equivalence(parsed_rule)
         if efficiency != 100.0:
             score = score + 15
         if equivalence == 100.0:
@@ -139,8 +144,8 @@ def score(scientist, rule, score, is_ending_player):
         else:
             score = score + 30
     except:
-        score = score + 30
-    return score        
+        score = score + 45
+    return (score, efficiency, equivalence)        
     
 
 # This class has a few player functions that are not used in phase 1
@@ -171,8 +176,8 @@ class Scientist:
     def setup_thinker(self, cards, dealer_rule):
         card_objs = []
         for card in cards:
-            card_objs.append(think.Card(card[:-1], card[-1]))
-        self.thinker = think.Game(card_objs, dealer_rule, randomPlay = False)
+            card_objs.append(thinker.Card(card[:-1], card[-1]))
+        self.thinker = thinker.Game(card_objs, dealer_rule, randomPlay = False)
 
     # This function gets a count of random cards and adds it to the hand
     def get_cards(self, count):
@@ -187,9 +192,12 @@ class Scientist:
     def get_score(self, is_equivalent, is_ending_player):
         score = self.score
         rule = self.rule
-        if rule[1][0] != 100.0:
-            score = score + 15
-        if rule[1][1] != 100.0:
+        if rule is not None:
+            if rule[1][0] != 100.0:
+                score = score + 15
+            if rule[1][1] != 100.0:
+                score = score + 30
+        else:
             score = score + 30
         if is_equivalent:
             score = score - 75
@@ -228,7 +236,7 @@ class Scientist:
     #	Returns true or false
     def play(self, card):
         if len(self.board) >= self.num_initial_cards:
-            self.thinker.playNext(think.Card(card[:-1], card[-1]))
+            self.thinker.playNext(thinker.Card(card[:-1], card[-1]))
         if len(self.board) > 0:
             last_three = self.get_last_three(card, self.board, -1)
             if self.evaluate_card(last_three, self.thinker.dealer_rule):
@@ -337,6 +345,20 @@ class Scientist:
         #play the card with the corresponding index
         return self.get_card_from_hand(index)
     
+    # Gets a random rule. Obtained from game.py from the TA's code.
+    def generate_random_rule(self):
+        # Generate a random rule
+        rule = ""
+        conditions = ["equal", "greater"]
+        properties = ["suit", "value"]
+        cond = conditions[random.randint(0, len(properties) - 1)]
+        if cond == "greater":
+            prop = "value"
+        else:
+            prop = properties[random.randint(0, len(properties) - 1)]
+
+        rule += cond + "(" + prop + "(current), " + prop + "(previous)), "
+        return rule[:-2]+")"
 
     #	Generates rules that apply to the current state of the board. 
     #	Only a decent amount will be chosen sicne there could be infinute possible rules.
@@ -432,13 +454,76 @@ class Scientist:
     #	Gets a to play from the hand
     #	Returns a card.
     def get_card_from_hand(self, index):
-        if index < 0:
+        if index < 0 or index > 13:
+            #get a random card
             return self.hand.pop(int(round(random.random() * (len(self.hand) - 1))))
         else:
+            #get a card from the index
             return self.hand.pop(index)
 
     #end Helper Functions
 
 #end Scientist class
 
+
+#region Adversary Class
+
+# The following code was provided by the TAs and we have modified it to fit our program.
+
+global game_ended
+game_ended = False
+
+def generate_random_card():
+    values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+    suits = ["S", "H", "D", "C"]
+    return values[random.randint(0, len(values)-1)] + suits[random.randint(0, len(suits)-1)]
+
+class Adversary(object):
+    def __init__(self):
+        self.hand = [generate_random_card() for i in range(14)]
+        self.score = 0
+        self.rule = self.generate_rule()
+
+    def play(self, length):
+        """
+        'cards' is a list of three valid cards to be given by the dealer at the beginning of the game.
+        Your scientist should play a card out of its given hand.
+        """
+        # Return a rule with a probability of 1/14
+        prob_list = [i for i in range(100)]
+        prob = prob_list[random.randint(0, 99)]
+        if prob == 1 and length >= 20:
+            return self.rule
+        else:
+            card = self.hand.pop(random.randint(0, len(self.hand) - 1))
+            self.hand.append(generate_random_card())
+            return card
+    
+    # Generates a random rule for the adversary.
+    def generate_rule(self):
+        # Generate a random rule
+        rule = ""
+        conditions = ["equal", "greater"]
+        properties = ["suit", "value"]
+        cond = conditions[random.randint(0, len(properties) - 1)]
+        if cond == "greater":
+            prop = "value"
+        else:
+            prop = properties[random.randint(0, len(properties) - 1)]
+
+        rule += cond + "(" + prop + "(current), " + prop + "(previous)), "
+        return rule[:-2]+")"
+
+    # Updates the score for this adversary.
+    def update_score(self, is_correct, length):
+        if is_correct:  
+            if length >= 20 and length <= 200:              
+                self.score = self.score + 1
+        else:
+            self.score = self.score + 2
+
+#end Adversary Class
+
+
+#call the main method
 main(sys.argv)

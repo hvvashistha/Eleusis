@@ -24,4 +24,4 @@ python scientist.py 3D "if(equal(color(previous),R),equal(color(current),B),if(e
 -----------------------------------------------
 ## Changes made to game.py
 
-We have made a few changes to the game.py file. Please use our file when testing.
+We have made a few changes to the game.py file provided by the TAs and combined them to our scientist.py module. We made it so that the adversaries wait until at least 20 cards have been played in order to decide game end. We also made it so that the adversary would pick a new card after playing one.

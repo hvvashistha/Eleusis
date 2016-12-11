@@ -448,10 +448,10 @@ class Game:
             for i in range(len(correct_list)-1):
                 store_dec_4[j][correct_list[i][j]] = [];
        
-        #==================================================================================================================================================================================================
-        # This code maps each of the attributes of the previous correct card to the list of all correct cards following that attribute
-        #
-        #==================================================================================================================================================================================================
+        #=======================================================================#
+        # This code maps each of the attributes of the previous correct card to # 
+        # the list of all correct cards following that attribute.               #
+        #=======================================================================#
         for j in range(3,10):
             store_dec[j] = {};
             
@@ -459,22 +459,22 @@ class Game:
         for j in range(3,10):
             for i in range(len(correct_list)-1):
                 var_attribute = functions['attribute'][j].__name__;
-                new_key = var_attribute +"_"+ str(correct_list[i][j]);
+                new_key = var_attribute +":" + str(correct_list[i][j]);
                 store_dec[j][new_key] = [];
 
         for j in range(3,10):
             
             for i in range(len(correct_list)-1):
                 var_attribute = functions['attribute'][j].__name__;
-                new_key = var_attribute +"_"+ str(correct_list[i][j]);
+                new_key = var_attribute + ":" + str(correct_list[i][j]);
                 store_dec[j][new_key].append(correct_list[i+1]);
         # 	print store_dec;
 
 
-        #==================================================================================================================================================================================================
-        # This code maps each of the attributes of the previous correct card to the list of all incorrect cards following that attribute
-        #
-        #==================================================================================================================================================================================================
+        #=======================================================================#
+        # This code maps each of the attributes of the previous correct card    #    
+        # to the list of all incorrect cards following that attribute.          #
+        #=======================================================================#
         for j in range(3,10):
             for i in range(len(correct_list)-1):
                 store_dec_3[j][correct_list[i][j]].append(incorrect_dict[i]);
@@ -574,7 +574,7 @@ class Game:
                     
                         if x!=set():
                         
-                            attr_list.append(functions['attribute'][count+3].__name__+ "_" + str(x))
+                            attr_list.append(functions['attribute'][count+3].__name__+ ":" + str(x))
                     
                         count = count + 1;
                     # print k, attr_list;
@@ -630,7 +630,7 @@ class Game:
         return rule
 
     def process_key(self, key):
-        str1 = key.split("_")
+        str1 = key.split(":")
         rule_string = "if(equal("
         for k in range(len(str1)):
             if k % 2 == 0:
@@ -643,7 +643,7 @@ class Game:
         rule_string = ""
         conjunctions = []
         for x in values:
-            x = x.split("_set")
+            x = x.split(":set")
             attribute = x[0]
             voa = x[1].replace("([","").replace("])","").replace("'","").split(", ")
             if len(voa)==1:
@@ -704,9 +704,7 @@ class Game:
             lastPlays.insert(0, None)
 
         correct = self.dealer_rule.evaluate(lastPlays)
-
         self.recordPlay(events, correct)
-        #self.printRecord()
         self.setup_decompose()
     
     # This function class decomposition
