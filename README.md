@@ -6,10 +6,10 @@ CMSC 671
 -----------------------------------------------
 ## Contributors
 
-Sabin Raj Tiwari
-Shantanu Sengupta
-Harsh Vashishta
-Sushant Chaudhari
+- Sabin Raj Tiwari
+- Shantanu Sengupta
+- Harsh Vashishta
+- Sushant Chaudhari
 
 -----------------------------------------------
 ## Running the program:
