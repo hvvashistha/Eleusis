@@ -1,21 +1,27 @@
-# Project Phase 1
-# CMSC 671
-
-#   Sabin Raj Tiwari
-#   Shantanu Sengupta
-#   Harsh Vashishta
-#   Sushant Chaudhari
-
 # Eleusis
 
-Running the program:
+Project Phase 2
 
-card: \<value\>\<suit\>
+CMSC 671
 
-python scientist.py \<god's card\> '\<rule\>'
+-----------------------------------------------
+## Contributors
 
-All values are in caps
+- Sushant Chaudhari
+- Shantanu Sengupta
+- Sabin Raj Tiwari
+- Harsh Vashishta
 
-example rule:
+-----------------------------------------------
+## Running the program:
 
-if(equal(color(previous),R),or(equal(suit(current),H),even(current)),or(and(equal(suit(current),S),even(current)),and(equal(suit(current),C),odd(current))))
+python scientist.py \<initial cards\> '\<rule\>'
+
+### E.g.
+
+python scientist.py 3D "if(equal(color(previous),R),equal(color(current),B),if(equal(color(previous),B),equal(color(current),R),))"
+
+-----------------------------------------------
+## Changes made to game.py
+
+We have made a few changes to the game.py file. Please use our file when testing.
