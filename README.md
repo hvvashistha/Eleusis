@@ -1,6 +1,7 @@
 # Eleusis
 
 Project Phase 2
+
 CMSC 671
 
 -----------------------------------------------
@@ -17,6 +18,7 @@ CMSC 671
 python scientist.py \<initial cards\> '\<rule\>'
 
 E.g.
+
 python scientist.py 3D "if(equal(color(previous),R),equal(color(current),B),if(equal(color(previous),B),equal(color(current),R),))"
 
 -----------------------------------------------
