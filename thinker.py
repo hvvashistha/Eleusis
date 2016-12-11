@@ -448,10 +448,10 @@ class Game:
             for i in range(len(correct_list)-1):
                 store_dec_4[j][correct_list[i][j]] = [];
        
-        #=======================================================================#
-        # This code maps each of the attributes of the previous correct card to # 
-        # the list of all correct cards following that attribute.               #
-        #=======================================================================#
+        #==================================================================================================================================================================================================
+        # This code maps each of the attributes of the previous correct card to the list of all correct cards following that attribute
+        #
+        #==================================================================================================================================================================================================
         for j in range(3,10):
             store_dec[j] = {};
             
@@ -459,28 +459,28 @@ class Game:
         for j in range(3,10):
             for i in range(len(correct_list)-1):
                 var_attribute = functions['attribute'][j].__name__;
-                new_key = var_attribute +":" + str(correct_list[i][j]);
+                new_key = var_attribute +"#"+ str(correct_list[i][j]);
                 store_dec[j][new_key] = [];
 
         for j in range(3,10):
             
             for i in range(len(correct_list)-1):
                 var_attribute = functions['attribute'][j].__name__;
-                new_key = var_attribute + ":" + str(correct_list[i][j]);
+                new_key = var_attribute +"#"+ str(correct_list[i][j]);
                 store_dec[j][new_key].append(correct_list[i+1]);
         # 	print store_dec;
 
 
-        #=======================================================================#
-        # This code maps each of the attributes of the previous correct card    #    
-        # to the list of all incorrect cards following that attribute.          #
-        #=======================================================================#
+        #==================================================================================================================================================================================================
+        # This code maps each of the attributes of the previous correct card to the list of all incorrect cards following that attribute
+        #
+        #==================================================================================================================================================================================================
         for j in range(3,10):
             for i in range(len(correct_list)-1):
                 store_dec_3[j][correct_list[i][j]].append(incorrect_dict[i]);
         
 
-        for j in range(3,8):
+        for j in range(3,10):
             for k,v in store_dec[j].iteritems():
                 store_dec_2[j][k] = []
                 for x in range(3,10):
@@ -562,6 +562,23 @@ class Game:
                                     l[1].add(False);
                             else:
                                 pass;
+                    if i2==5:
+                        initial_value = v[i2];
+                        maintain_count = 0;
+                        for x in v[i2]:
+                            if x==initial_value:
+                                maintain_count = maintain_count + 1;
+                        if len(v[i2]) == maintain_count:
+                            l[i2].add(initial_value);
+                                
+                    if i2==6:
+                            initial_value = v[i2];
+                            maintain_count = 0;
+                            for x in v[i2]:
+                                if x==initial_value:
+                                    maintain_count = maintain_count + 1;
+                            if len(v[i2]) == maintain_count:
+                                l[i2].add(initial_value);
 
                 #print k,l;
                 #print "=========================================================="
@@ -574,7 +591,7 @@ class Game:
                     
                         if x!=set():
                         
-                            attr_list.append(functions['attribute'][count+3].__name__+ ":" + str(x))
+                            attr_list.append(functions['attribute'][count+3].__name__+ "#" + str(x))
                     
                         count = count + 1;
                     # print k, attr_list;
@@ -626,11 +643,11 @@ class Game:
         for k,v in final_rule.items():
             rule = rule + self.process_key(k)
             rule = rule + self.process_values(v)
-            rule = rule + ",)"
+            rule = rule + ",not("+self.process_values(v)+"))"
         return rule
 
     def process_key(self, key):
-        str1 = key.split(":")
+        str1 = key.split("#")
         rule_string = "if(equal("
         for k in range(len(str1)):
             if k % 2 == 0:
@@ -643,7 +660,7 @@ class Game:
         rule_string = ""
         conjunctions = []
         for x in values:
-            x = x.split(":set")
+            x = x.split("#set")
             attribute = x[0]
             voa = x[1].replace("([","").replace("])","").replace("'","").split(", ")
             if len(voa)==1:
