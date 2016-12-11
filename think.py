@@ -603,7 +603,10 @@ class Game:
 
         for i in range(0, len(final_rule_list) - 1):
             for j in range(i + 1, len(final_rule_list)):
-                all_rules_list.append(final_rule_list[i].rstrip(")") + final_rule_list[j] + ")");
+                x=final_rule_list[i]
+                y=final_rule_list[j]
+                all_rules_list.append(x.rstrip(")") + y + ")")
+                all_rules_list.append("and(" + x + "," + y + ")")
 
         return all_rules_list
      
