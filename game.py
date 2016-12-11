@@ -28,7 +28,7 @@ class Adversary(object):
     def __init__(self):
         self.hand = [generate_random_card() for i in range(14)]
         self.score = 0
-        self.rule = None
+        self.rule = self.generate_rule()
 
     def play(self):
         """
@@ -39,12 +39,10 @@ class Adversary(object):
         prob_list = [i for i in range(14)]
         prob = prob_list[randint(0, 13)]
         if prob == 4:
-            self.rule = self.generate_rule()
             return self.rule
         else:
             card = self.hand.pop(randint(0, len(self.hand) - 1))
             self.hand.append(generate_random_card())
-            self.rule = self.generate_rule()
             return card
     
     def generate_rule(self):

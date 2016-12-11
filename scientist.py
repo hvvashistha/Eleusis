@@ -96,8 +96,8 @@ def main(args):
         if index == end:
             name = name + " (called end of game)"
         print name 
-        print "\tRule: " + str(adversaries[i].rule)
-        print "\tScore: " + str(score(player, adversaries[i].rule, adversaries[i].score, index == end))
+        print "\tRule: " + str(adversaries[index].rule)
+        print "\tScore: " + str(score(player, adversaries[index].rule, adversaries[index].score, index == end))
         print "-----------------------------------------"
     
     # Print the information for the player's rule and score
@@ -109,7 +109,7 @@ def main(args):
     player.get_rule()
     if player.rule is None:
         print "\tRule: None (There were not enough correct cards to determine the rule)"
-        print "\n\tPlayer's Score: " + str(False, end == -1)
+        print "\n\tPlayer's Score: " + str(get_score(False, end == -1))
     else:
         # if the player's rule is npt empty
         print "\tRule: " + str(player.rule[0])
@@ -152,6 +152,7 @@ class Scientist:
         self.score = 0
         self.num_initial_cards = len(cards)
         self.rule = None
+        self.rules = []
         self.board = []
         self.all_cards = []
         self.build_all_cards()
@@ -207,7 +208,8 @@ class Scientist:
     #	Returs the best rule in the list of rules
     def get_rule(self):
         if len(self.thinker.guessed_rules) > 0:
-            self.rule = self.prioritize_rules(self.thinker.guessed_rules)[-1]
+            self.rules = self.prioritize_rules(self.thinker.guessed_rules)
+            self.rule = self.rules[-1]
             return self.rule
         return None
     

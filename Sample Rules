@@ -4,11 +4,11 @@ PERIODIC RULES :
 ------------------------------------------------------------------------------------------------------------------------------------------
 If previous card black, then next card red.
 If previous card red, then next card black.
-python eleusis_test.py 3D "if(equal(color(previous),R),equal(color(current),B),if(equal(color(previous),B),equal(color(current),R),))"
+python scientist.py 3D "if(equal(color(previous),R),equal(color(current),B),if(equal(color(previous),B),equal(color(current),R),))"
 ------------------------------------------------------------------------------------------------------------------------------------------
 If previous card odd, then next card even.
 If previous card even, then next card odd.
-python eleusis_test.py 3D "if(odd(previous),even(current),odd(current))"
+python scientist.py 3D "if(odd(previous),even(current),odd(current))"
 ------------------------------------------------------------------------------------------------------------------------------------------
 H-->D-->S-->C-->H
 python eleusis_test.py 3D "if(equal(suit(previous),H),equal(suit(current),D),if(equal(suit(previous),D),equal(suit(current),S),if(equal(suit(previous),S),equal(suit(current),C),if(equal(suit(previous),C),equal(suit(current),H),))))"
@@ -23,7 +23,7 @@ Even Heart         --> Odd Spades
 Odd Spades    --> Even Clubs
 Even Clubs        --> Odd Diamonds
 
-python eleusis_test.py 3D "if(and(odd(previous),equal(suit(previous),D)),and(even(current),equal(suit(current),H)),if(and(odd(previous),equal(suit(previous),S)),and(even(current),equal(suit(current),C)),if(and(even(previous),equal(suit(previous),H)),and(odd(current),equal(suit(current),S)),if(and(even(previous),equal(suit(previous),C)),and(odd(current),equal(suit(current),D)),if(and(even(previous),equal(suit(previous),D)),and(odd(current),equal(suit(current),H)),if(and(even(previous),equal(suit(previous),S)),and(odd(current),equal(suit(current),C)),if(and(odd(previous),equal(suit(previous),H)),and(even(current),equal(suit(current),S)),if(and(odd(previous),equal(suit(previous),C)),and(even(current),equal(suit(current),D)),))))))))"
+python scientist.py 3D "if(and(odd(previous),equal(suit(previous),D)),and(even(current),equal(suit(current),H)),if(and(odd(previous),equal(suit(previous),S)),and(even(current),equal(suit(current),C)),if(and(even(previous),equal(suit(previous),H)),and(odd(current),equal(suit(current),S)),if(and(even(previous),equal(suit(previous),C)),and(odd(current),equal(suit(current),D)),if(and(even(previous),equal(suit(previous),D)),and(odd(current),equal(suit(current),H)),if(and(even(previous),equal(suit(previous),S)),and(odd(current),equal(suit(current),C)),if(and(odd(previous),equal(suit(previous),H)),and(even(current),equal(suit(current),S)),if(and(odd(previous),equal(suit(previous),C)),and(even(current),equal(suit(current),D)),))))))))"
 -------------------------------------------------------------------------------------------------------------------------------------
 
 *************************************************************************************************************************************
@@ -31,7 +31,7 @@ NON PERIODIC RULES -
 *************************************************************************************************************************************
 even card followed by red card
 odd card followed by black card
-python eleusis_test.py 3D "if(odd(previous),equal(color(current),R),equal(color(current),B))"
+python scientist.py 3D "if(odd(previous),equal(color(current),R),equal(color(current),B))"
 
 
-python eleusis_test.py 2D "or(and(equal(color(current),R),even(current)),and(equal(color(current),B),odd(current)))"
+python scientist.py 2D "or(and(equal(color(current),R),even(current)),and(equal(color(current),B),odd(current)))"
