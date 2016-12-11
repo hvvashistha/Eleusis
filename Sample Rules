@@ -1,37 +1,68 @@
-*************************************************************************************************************************************
-PERIODIC RULES : 
-*************************************************************************************************************************************
-------------------------------------------------------------------------------------------------------------------------------------------
-If previous card black, then next card red.
-If previous card red, then next card black.
-python scientist.py 3D "if(equal(color(previous),R),equal(color(current),B),if(equal(color(previous),B),equal(color(current),R),))"
-------------------------------------------------------------------------------------------------------------------------------------------
-If previous card odd, then next card even.
-If previous card even, then next card odd.
-python scientist.py 3D "if(odd(previous),even(current),odd(current))"
-------------------------------------------------------------------------------------------------------------------------------------------
-H-->D-->S-->C-->H
-python eleusis_test.py 3D "if(equal(suit(previous),H),equal(suit(current),D),if(equal(suit(previous),D),equal(suit(current),S),if(equal(suit(previous),S),equal(suit(current),C),if(equal(suit(previous),C),equal(suit(current),H),))))"
-------------------------------------------------------------------------------------------------------------------------------------------
-Even Diamond --> Odd Heart
-Odd Heart         --> Even Spades
-Even Spades    --> Odd Clubs
-Odd Clubs        --> Even Diamonds
+Rule Description
+======================================================================================================================================================
+"If previous card black, then next card red.
+If previous card red, then next card black."	
 
-Odd Diamond --> Even Heart
-Even Heart         --> Odd Spades
-Odd Spades    --> Even Clubs
-Even Clubs        --> Odd Diamonds
+python scientist.py 3D equal(color(current),plus1(color(previous)))
+======================================================================================================================================================
+"If previous card odd, then next card even.
+If previous card even, then next card odd."	
 
-python scientist.py 3D "if(and(odd(previous),equal(suit(previous),D)),and(even(current),equal(suit(current),H)),if(and(odd(previous),equal(suit(previous),S)),and(even(current),equal(suit(current),C)),if(and(even(previous),equal(suit(previous),H)),and(odd(current),equal(suit(current),S)),if(and(even(previous),equal(suit(previous),C)),and(odd(current),equal(suit(current),D)),if(and(even(previous),equal(suit(previous),D)),and(odd(current),equal(suit(current),H)),if(and(even(previous),equal(suit(previous),S)),and(odd(current),equal(suit(current),C)),if(and(odd(previous),equal(suit(previous),H)),and(even(current),equal(suit(current),S)),if(and(odd(previous),equal(suit(previous),C)),and(even(current),equal(suit(current),D)),))))))))"
--------------------------------------------------------------------------------------------------------------------------------------
+python scientist.py 3D if(odd(previous),even(current),odd(current))
+======================================================================================================================================================
+H-->D-->S-->C-->H	
 
-*************************************************************************************************************************************
-NON PERIODIC RULES - 
-*************************************************************************************************************************************
-even card followed by red card
-odd card followed by black card
-python scientist.py 3D "if(odd(previous),equal(color(current),R),equal(color(current),B))"
+python scientist.py 3D if(equal(suit(previous),H),equal(suit(current),D),if(equal(suit(previous),D),equal(suit(current),S),if(equal(suit(previous),S),equal(suit(current),C),if(equal(suit(previous),C),equal(suit(current),H),))))
+======================================================================================================================================================
+"If previous card black & odd, then next card red & even.
+If previous card black & even, then next card red & odd.
+If previous card red & odd, then next card black & even.
+If previous card red & even, then next card black & odd."	
 
+python scientist.py 3D if(and(odd(previous),equal(color(previous),black)),and(even(current),equal(color(current),red)),if(and(odd(previous),equal(color(previous),red)),and(even(current),equal(color(current),black)),if(and(even(previous),equal(color(previous),black)),and(odd(current),equal(color(current),red)),if(and(even(previous),equal(color(previous),red)),and(odd(current),equal(color(current),black)),))))
+======================================================================================================================================================
+"even card followed by red card
+odd card followed by black card"	
 
-python scientist.py 2D "or(and(equal(color(current),R),even(current)),and(equal(color(current),B),odd(current)))"
+python scientist.py 3D if(odd(previous),equal(color(current),R),equal(color(current),B))
+======================================================================================================================================================
+"If color of previous card is black, then throw the next higher suit
+If color of previous card is red, then throw the lower suit."	
+
+python scientist.py 3D if(equal(color(previous),B),greater(suit(previous),suit(current)),less(suit(previous),suit(current)))
+======================================================================================================================================================
+If the last card is among the cards ace to 7, play a card 8 to king. If last is among 8 to king, play ace to 7.	
+
+python scientist.py 3D if(less(value(previous),8),greater(value(current),8),less(value(current),8))
+======================================================================================================================================================
+Current card is Royal	
+
+python scientist.py KD is_royal(current)
+======================================================================================================================================================
+Current card is Even	
+
+python scientist.py 2D even(current)
+======================================================================================================================================================
+Current card is Odd	
+
+python scientist.py AD odd(current)
+======================================================================================================================================================
+If current card is odd, next card is Red else it is suit C	
+
+python scientist.py 2D if(odd(previous),equal(color(current),R),if(even(previous),equal(suit(current),C),))
+======================================================================================================================================================
+Current Card odd or with color Red	
+
+python scientist.py 3D or(odd(current),equal(color(current),R))
+======================================================================================================================================================
+Rule with diff_suit	
+
+python scientist.py 2D equal(diff_suit(current,previous),1)
+======================================================================================================================================================
+Rule with plus 1 suit	
+
+python scientist.py 2D equal(plus1(suit(previous)),suit(current))
+======================================================================================================================================================
+Rule with greater and less	
+
+python scientist.py 2S if(not(is_royal(previous)),greater(value(current)),less(value(current)))
