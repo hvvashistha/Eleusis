@@ -44,64 +44,104 @@ def main(args):
         cards.append(args[i])
 
     player = Scientist(cards, args[-1])
-    adversary1 = game.Adversary()
-    adversary2 = game.Adversary()
-    adversary3 = game.Adversary()
+    adversaries = [game.Adversary(), game.Adversary(), game.Adversary()]
+    rounds = 0
+    end = -2
 
-    end = False
-    while not end:
-        print "Player Hand: " + str(player.hand)
-        player_play = player.scientist()
-        if not new_eleusis.is_card(player_play):
-            end = True
-
-        print "Adversary 1 Hand: " + str(adversary1.hand)
-        adv1 = adversary1.play()
-        if new_eleusis.is_card(adv1):
-            player.play(adv1)   
-        else:
-            end = True
-
-        print "Adversary 2 Hand: " + str(adversary2.hand)
-        adv2 = adversary2.play()
-        if new_eleusis.is_card(adv2):
-            player.play(adv2)   
-        else:
-            end = True
-
-        print "Adversary 3 Hand: " + str(adversary3.hand)
-        adv3 = adversary3.play()
-        if new_eleusis.is_card(adv3):
-            player.play(adv3)   
-        else:
-            end = True
-
-        print player.board_state()
+    while end == -2:
+        rounds = rounds + 1
+        print "\n========================================="
+        print "Round " + str(rounds)
+        print "========================================="
+        print "Current Board: " + player.board_state()
         print "\n"
     
-    print "\nGame Ended"
-    print "\nPlayer's Rules Is:"
-    print player.rule()
+        # The Player makes a move
+        move_time_start = datetime.datetime.now()
+        player_play = player.scientist()
+        move_time_end = datetime.datetime.now()
+        if new_eleusis.is_card(player_play):
+            print "Player Played: " + player_play + " [time taken (h:m:s.ms): " + str(move_time_end - move_time_start) + "]"
+        else:
+            print "Ending Board: " + player.board_state()
+            print "\nPlayer wants to show the rule."
+            end = -1
+            break
+        
+        # All the adversaries make their moves
+        for i in range(0, len(adversaries)):
+            move_time_start = datetime.datetime.now()
+            play = adversaries[i].play()
+            move_time_end = datetime.datetime.now()
+            if new_eleusis.is_card(play):
+                print "Adversary " + str(i + 1) + " Played: " + play + " [time taken (h:m:s.ms): " + str(move_time_end - move_time_start) + "]"
+                is_correct = player.play(play)
+                adversaries[i].update_score(is_correct, player.thinker.history)
+            else:
+                print "\nAdversary " + str(i + 1) + " wants to show the rule."
+                print "\nEnding Board: " + player.board_state()
+                end = i
+                break
 
+    time_end =  datetime.datetime.now()
     
-    # print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
-    # print game.guessed_rule_dict
+    # Print the results
+    print "\n========================================="
+    print "Total Game Time (h:m:s.ms): " + str(time_end - time_start)
+    print "Results for the Game (rules and scores):"
+    print "========================================="
+    # Print the information for the adversaries' rules and scores
+    for index in range(0, len(adversaries)):
+        name = "Adversary " + str(index + 1)
+        if index == end:
+            name = name + " (called end of game)"
+        print name 
+        print "\tRule: " + str(adversaries[index].rule)
+        print "\tScore: " + str(score(player, adversaries[index].rule, adversaries[index].score, index == end))
+        print "-----------------------------------------"
+    
+    # Print the information for the player's rule and score
+    name = "Player"
+    if end == -1:
+        name = name + " (called end of game)"
+    print name
+    print "Getting Player's Rule..."
+    player.get_rule()
+    if player.rule is None:
+        print "\tRule: None (There were not enough correct cards to determine the rule)"
+        print "\n\tPlayer's Score: " + str(get_score(False, end == -1))
+    else:
+        # if the player's rule is npt empty
+        print "\tRule: " + str(player.rule[0])
+        print "\tEfficiency: " + str(player.rule[1][0]) + "%"
+        print "\tEquivalency: " + str(player.rule[1][1]) + "%"
+        print "\tConfidence: " + str((player.rule[1][0] / 100) * (player.rule[1][1] / 100) * 100) + "%"
+        input = ""
+        while not(input == "Y" or input == "y" or input == "N" or input == "n"):
+            input = raw_input("\nWas the player's rule logically equivalent? (Y/N):")
+        print "\n\tPlayer's Score: " + str(player.get_score(input == "Y" or input == "y", end == -1))
+        print "-----------------------------------------"
 
-    # print "\nThe rule that was guessed after 200 moves is (as an expression): "
-    # print game.guessed_rule
-
-    # scientist = scientist.Scientist(game.history, game.provided_rule, game.guessed_rule)
-    # print "\nThe total score for the player is: " + str(scientist.score())
-
-    # print "\nThe rule that was guessed after 200 moves is (as a dictionary): "
-    # print game.guessed_rule_dict
-
-    # print "\nThe rule that was guessed after 200 moves is (as an expression): "
-    # print game.guessed_rule
-
-    # time_end =  datetime.datetime.now()
-    # print "\nTime Taken (h:m:s.ms): " + str(time_end - time_start)
-
+# Gets the total score based on a rule and the score for the plays
+def score(scientist, rule, score, is_ending_player):
+    if rule is None:
+        score = score + 30
+    try:
+        parsed_rule = new_eleusis.parse(rule)
+        efficiency = self.get_efficiency(parsed_rule)
+        equivalence = self.get_equivalence(parsed_rule)
+        if efficiency != 100.0:
+            score = score + 15
+        if equivalence == 100.0:
+            score = score - 75
+            if is_ending_player:
+                score = score - 25
+        else:
+            score = score + 30
+    except:
+        score = score + 30
+    return score        
+    
 
 # This class has a few player functions that are not used in phase 1
 # But this is also used to score the player and end the game for phase 1
@@ -109,8 +149,10 @@ def main(args):
 class Scientist:
 
     def __init__(self, cards, dealer_rule):
-        self.correct_moves = 0
-        self.incorrect_moves = 0
+        self.score = 0
+        self.num_initial_cards = len(cards)
+        self.rule = None
+        self.rules = []
         self.board = []
         self.all_cards = []
         self.build_all_cards()
@@ -118,9 +160,10 @@ class Scientist:
         self.thinker = None
         self.get_cards(14)
         self.last_play_positive = True
+        self.setup_thinker(cards, dealer_rule)
         for card in cards:
             self.play(card)
-        self.setup_thinker(cards, dealer_rule)
+        
 
     #region Setup methods
 
@@ -140,6 +183,20 @@ class Scientist:
 
     #region Main Functions
 
+    #   Gets the score for the player.
+    def get_score(self, is_equivalent, is_ending_player):
+        score = self.score
+        rule = self.rule
+        if rule[1][0] != 100.0:
+            score = score + 15
+        if rule[1][1] != 100.0:
+            score = score + 30
+        if is_equivalent:
+            score = score - 75
+            if is_ending_player:
+                score = score - 25
+        return score
+        
     #	This function will set the dealer rule using the
     #	helper functions in new_eleusis.py.
     #	TODO: Need to update a few things based on prof's suggestions.
@@ -149,16 +206,17 @@ class Scientist:
     # 	This function will return the current actual rule that the player is
     #	considering and will be used to determine the score.
     #	Returs the best rule in the list of rules
-    def rule(self):
+    def get_rule(self):
         if len(self.thinker.guessed_rules) > 0:
-            rules = self.prioritize_rules(self.thinker.guessed_rules)
-            return rules[0][0]
+            self.rules = self.prioritize_rules(self.thinker.guessed_rules)
+            self.rule = self.rules[-1]
+            return self.rule
         return None
     
     #	This function will create the board state in string representation
     #	Returns string for the board
     def board_state(self):
-        board = "\nRound Ended: {\n"
+        board = "{\n"
         for card in self.board:
             board = board + "\t {" + card[0] + "} , Incorrect Cards " + str(card[1]) + "\n"
         board = board.strip(" ").strip(",")
@@ -169,8 +227,11 @@ class Scientist:
     #	This also updates the board_state.
     #	Returns true or false
     def play(self, card):
+        if len(self.board) >= self.num_initial_cards:
+            self.thinker.playNext(think.Card(card[:-1], card[-1]))
         if len(self.board) > 0:
-            if self.evaluate_card(card, self.thinker.dealer_rule):
+            last_three = self.get_last_three(card, self.board, -1)
+            if self.evaluate_card(last_three, self.thinker.dealer_rule):
                 self.board.append((card, []))
                 return True
             else:
@@ -183,47 +244,20 @@ class Scientist:
     #	This function handles the player which will determine when and what to play
     #	and choosing when to declare success.
     def scientist(self):
-        if self.decide_success() or len(self.thinker.history) >= 200:
-            return self.thinker.guessed_rule
+        card = self.get_best_card()
+        result = self.decide_success()
+        if (result is not None) or len(self.thinker.history) >= 200:
+            return result[0]
+        correct = self.play(card)
+        self.get_cards(1)
+        history_len = len(self.thinker.history)
+        if correct:        
+            if history_len >= 20 and history_len <= 200:        
+                self.score = self.score + 1
         else:
-            card = self.get_best_card()
-            self.thinker.playNext(think.Card(card[:-1], card[-1]))
-            correct = self.play(card)
-            self.get_cards(1)
-            if correct:                
-                self.correct_moves = self.correct_moves + 1
-            else:
-                self.incorrect_moves = self.incorrect_moves + 1
-            return card
-       
-
-    #	Adds 1 for every right card, 2 for every wrong card, 15 for a wrong rule, 
-    #		and 30 for a rule that does not satisfy the cards on the board.
-    #	Returns a value for the score
-    def score(self):
-        score = 0
-        for card in self.board:
-            score = score + 1 + (2 * len(card[1]))
-        if not(self.player_rule_str == self.dealer_rule_str):
-            score = score + 15
-        cards = []
-        for card in self.board:
-            cards.append(card[0])
-        original_board = list(self.board)
-        self.board = []
-        # play with the player rule applied
-        for card in original_board:
-            self.play(card[0], self.player_rule)
-        print "\nThe Board State (using the player rule and only playing the correct cards for the dealer rule): "
-        print self.board_state() + "\n"
-        # add to the score if there is a difference
-        correct_dealer = len(original_board)
-        correct_player = len(self.board)
-        efficiency = (correct_player / float(correct_dealer)) * 100.0
-        if not(correct_dealer == correct_player):
-            score = score + 30
-        print "\nEfficiency: " + str(efficiency)
-        return score
+            self.score = self.score + 2
+        return card
+      
 
     #end Main Functions
 
@@ -234,22 +268,35 @@ class Scientist:
 
     # Evaluates a card with the provided rule.
     # Returns True or False.
-    def evaluate_card(self, card, rule):
-        last_three = []
-        if len(self.board) > 0:
-            last_three.append(self.board[-1][0])
-        else:
-            last_three.insert(1, None)
-        if len(self.board) < 2:
-            last_three.insert(0, None)
-        else:
-            last_three.insert(0, self.board[-2][0])
-        last_three.append(card)
-
-        if rule.evaluate(last_three):
+    def evaluate_card(self, cards, rule):
+        if rule.evaluate(cards):
             return True
         else:
             return False
+
+    # Gets the last three cards from the board starting at an index
+    # Passing -1 gives the -1, and -2 index if they exist
+    def get_last_three(self, card, board, index):
+        last_three = []
+        if index == -1:
+            if len(board) > 0:
+                last_three.append(board[-1][0])
+            else:
+                last_three.insert(1, None)
+            if len(board) < 2:
+                last_three.insert(0, None)
+            else:
+                last_three.insert(0, board[-2][0])
+        elif index == 0:
+            return []
+        else:
+            if index >= 2:
+                last_three.append(board[index - 2][0])
+            else:
+                last_three.append(None)
+            last_three.append(board[index - 1][0])
+        last_three.append(card)
+        return last_three
 
     #	Based on the current possible rules, decides the best card to play.
     #	Applies constrainsts at this stage.
@@ -259,11 +306,12 @@ class Scientist:
         try:
             correct_indeces = []
             incorrect_indeces = []
-            player_rule = new_eleusis.parse(self.thinker.guessed_rule)
+            player_rule = new_eleusis.parse(self.get_rule())
             # for all the cards in the hand, assign correct or 
             #   incorrect against the player's current rule
             for i in range(0, len(self.hand)):
-                if evaluate_card(self.hand[i], player_rule):
+                last_three = get_last_three(self.hand[i], self.board, -1)
+                if evaluate_card(last_three, player_rule):
                     correct_indeces.append(i)
                 else:
                     incorrect_indeces.append(i)
@@ -305,36 +353,73 @@ class Scientist:
     def prioritize_rules(self, rules):
         evaluation = []
         for rule in rules:
+            efficiency = 0.0
+            equivalence = 0.0
             try:
                 parsed_rule = new_eleusis.parse(rule)
-                value = self.evaluate_rule(parsed_rule)
-                evaluation.append((rule, value))
+                efficiency = self.get_efficiency(parsed_rule)
+                equivalence = self.get_equivalence(parsed_rule)
+                evaluation.append((rule, (efficiency, equivalence)))
             except:
-                evaluation.append((rule, 0.0))
-        return evaluation
+                evaluation.append((rule, (efficiency, equivalence)))
+        return sorted(evaluation, key = lambda tuple: (tuple[1][0], tuple[1][1], -(len(tuple[0]))))
 
 
-    #	Evaluates a rule based on how many correct and wrong cards it produced.
-    #	Returns the value for the evaluation (0 - 100)
-    def evaluate_rule(self, rule):
-        total = 0
-        correct = 0
-        for card in self.board:
-            total = total + 1
-            if self.evaluate_card(card[0], rule):
-                correct = correct + 1
-        return (correct / total) * 100
+    # Gets the efficiency of a provided rule for all the correct cards.
+    def get_efficiency(self, rule):
+        total = len(self.board)
+        correct = self.num_initial_cards
+        for index in range(0, total):
+            if index >= self.num_initial_cards:
+                last_three = self.get_last_three(self.board[index][0], self.board, index)
+                if self.evaluate_card(last_three, rule):
+                    correct = correct + 1
+        return (correct / float(total)) * 100
+    
+    
+    # Gets the logical equivalence of a provided rule for all the played cards.
+    def get_equivalence(self, rule):
+        total = len(self.thinker.history)
+        match = self.num_initial_cards
+        for index in range(0, len(self.board)):
+            card = self.board[index][0]
+            incorrect_cards = self.board[index][1]
+            if index >= self.num_initial_cards:
+                last_three = self.get_last_three(card, self.board, index)
+                player = self.evaluate_card(last_three, rule)
+                if player == True:
+                    match = match + 1
+            for incorrect in incorrect_cards:
+                last_three = self.get_last_three(incorrect, self.board, index + 1)
+                player = self.evaluate_card(last_three, rule)
+                if player == False:
+                    match = match + 1
+        return (match / float(total)) * 100
 
 
     #	Calculates if the player should decide success
     #	Returns true or false depending on the player needing to decide
     def decide_success(self):
-        current_rule = self.rule()
+        current_rule = self.get_rule()
+        history_length = len(self.thinker.history)
         if not current_rule is None:
-            if len(self.board) > 20 and current_rule.evaluate(board):
-                if rule.evaluation == 100 or self.total_moves > 200:
-                    return True
-        return False
+            try:
+                parsed_rule = new_eleusis.parse(current_rule[0])
+                #if there have been more than 20 plays
+                if history_length >= 20:
+                    # if the current rule has 100 efficiency and 100 equivalence
+                    if current_rule[1][0] == 100 and current_rule[1][1] == 100:
+                        return current_rule
+                    # if the current rule has 100 efficiency or 100 equivalence
+                    elif current_rule[1][0] == 100 or current_rule[1][1] == 100:
+                        return current_rule
+                    # if the current rule is not as efficient as we like, show rule if 200 plays have been made
+                    elif history_length >= 200:
+                        return current_rule
+            except:
+                if history_length >= 200:
+                    return current_rule
+        return None
 
 
     #	Builds the list of all possible cards
