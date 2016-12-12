@@ -23,6 +23,10 @@ import datetime
 import thinker
 
 # globals
+global min_plays
+global max_plays
+min_plays = 20
+max_plays = 200
 card_values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
 card_suits = ['C', 'D', 'H', 'S']
 card_colors = {
@@ -254,13 +258,13 @@ class Scientist:
     def scientist(self):
         card = self.get_best_card()
         result = self.decide_success()
-        if (result is not None) or len(self.thinker.history) >= 200:
+        if (result is not None) or len(self.thinker.history) >= max_plays:
             return result[0]
         correct = self.play(card)
         self.get_cards(1)
         history_len = len(self.thinker.history)
         if correct:        
-            if history_len >= 20 and history_len <= 200:        
+            if history_len >= min_plays and history_len <= max_plays:        
                 self.score = self.score + 1
         else:
             self.score = self.score + 2
@@ -384,7 +388,7 @@ class Scientist:
                 evaluation.append((rule, (efficiency, equivalence)))
             except:
                 evaluation.append((rule, (efficiency, equivalence)))
-        return sorted(evaluation, key = lambda tuple: (tuple[1][0], tuple[1][1], -(len(tuple[0]))))
+        return sorted(evaluation, key = lambda tuple: (tuple[1][0], -(len(tuple[0])), tuple[1][1]))
 
 
     # Gets the efficiency of a provided rule for all the correct cards.
@@ -428,7 +432,7 @@ class Scientist:
             try:
                 parsed_rule = new_eleusis.parse(current_rule[0])
                 #if there have been more than 20 plays
-                if history_length >= 20:
+                if history_length >= min_plays:
                     # if the current rule has 100 efficiency and 100 equivalence
                     if current_rule[1][0] == 100 and current_rule[1][1] == 100:
                         return current_rule
@@ -436,10 +440,10 @@ class Scientist:
                     elif current_rule[1][0] == 100 or current_rule[1][1] == 100:
                         return current_rule
                     # if the current rule is not as efficient as we like, show rule if 200 plays have been made
-                    elif history_length >= 200:
+                    elif history_length >= max_plays:
                         return current_rule
             except:
-                if history_length >= 200:
+                if history_length >= max_plays:
                     return current_rule
         return None
 
@@ -492,7 +496,7 @@ class Adversary(object):
         # Return a rule with a probability of 1/14
         prob_list = [i for i in range(100)]
         prob = prob_list[random.randint(0, 99)]
-        if prob == 1 and length >= 20:
+        if prob == 1 and length >= min_plays:
             return self.rule
         else:
             card = self.hand.pop(random.randint(0, len(self.hand) - 1))
@@ -517,7 +521,7 @@ class Adversary(object):
     # Updates the score for this adversary.
     def update_score(self, is_correct, length):
         if is_correct:  
-            if length >= 20 and length <= 200:              
+            if length >= min_plays and length <= max_plays:              
                 self.score = self.score + 1
         else:
             self.score = self.score + 2
