@@ -48,16 +48,30 @@ import datetime
 def diff_suit(a, b):
     suita = new_eleusis.to_function["suit"](a)
     suitb = new_eleusis.to_function["suit"](b)
-    # print "Calling diff_Suit"
-    # print suita + " " + suitb
-    return "CDHS".index(suita) - "CDHS".index(suitb)
+    x = "CDHS".index(suita) - "CDHS".index(suitb)
+    if x == 1:
+        return "1"
+    if x == -1:
+        return "-1"
+    if x >= 0:
+        return "Positive"
+    
+    return "Negative"
+    
 
 def diff_value(a, b):
     valuea = new_eleusis.to_function["value"](a)
     valueb = new_eleusis.to_function["value"](b)
-    # print "Calling diff_value "
-    # print (valuea - valueb)
-    return valuea - valueb
+    x = valuea - valueb
+    if x == 1:
+        return "1"
+    if x == -1:
+        return "-1"
+    if x >= 0:
+        return "Positive"
+    
+    return "Negative"
+    
 
 def current(c):
     # print "Current "+c
@@ -563,22 +577,26 @@ class Game:
                             else:
                                 pass;
                     if i2==5:
-                        initial_value = v[i2];
-                        maintain_count = 0;
-                        for x in v[i2]:
-                            if x==initial_value:
-                                maintain_count = maintain_count + 1;
-                        if len(v[i2]) == maintain_count:
-                            l[i2].add(initial_value);
+                        if len(v[i2]) == 4:
+                            l[i2]=set();
+                        elif len(v[i2]) == 2 and v[i2]==set(["Positive","1"]):
+                            l[i2]=set(["Positive"]);
+                        elif len(v[i2]) == 2 and v[i2]==set(["Negative","-1"]):
+                            l[i2]=set(["Negative"]);                            
+                        elif len(v[i2]) == 1:
+                            l[i2]=v[i2];
+                            
                                 
                     if i2==6:
-                            initial_value = v[i2];
-                            maintain_count = 0;
-                            for x in v[i2]:
-                                if x==initial_value:
-                                    maintain_count = maintain_count + 1;
-                            if len(v[i2]) == maintain_count:
-                                l[i2].add(initial_value);
+                        if len(v[i2]) == 4:
+                            l[i2]=set();
+                        elif len(v[i2]) == 2 and v[i2]==set(["Positive","1"]):
+                            l[i2]=set(["Positive"]);
+                        elif len(v[i2]) == 2 and v[i2]==set(["Negative","-1"]):
+                            l[i2]=set(["Negative"]);                            
+                        elif len(v[i2]) == 1:
+                            l[i2]=v[i2];
+                            
 
                 #print k,l;
                 #print "=========================================================="
@@ -622,9 +640,11 @@ class Game:
             for j in range(i + 1, len(final_rule_list)):
                 x=final_rule_list[i]
                 y=final_rule_list[j]
-                all_rules_list.append(x.rstrip(")") + y + ")")
+                all_rules_list.append("or(" + x + "," + y + ")")
                 all_rules_list.append("and(" + x + "," + y + ")")
-
+        # for x in all_rules_list:
+        #     print x;
+        #     print "======================================================================================"
         return all_rules_list
      
     def create_final_rule(self, final_rule):
@@ -644,6 +664,25 @@ class Game:
             rule = rule + self.process_key(k)
             rule = rule + self.process_values(v)
             rule = rule + ",not("+self.process_values(v)+"))"
+
+        rule = rule.replace("equal(diff_value(previous),1)","equal(value(current),plus1(value(previous)))")
+        rule = rule.replace("equal(diff_value(previous),-1)","equal(value(current),minus1(value(previous)))")
+        rule = rule.replace("equal(diff_value(previous),Positive)","greater(value(current),value(previous))")
+        rule = rule.replace("equal(diff_value(previous),Negative)","less(value(current),value(previous))")
+        rule = rule.replace("equal(diff_suit(previous),1)","equal(suit(current),plus1(suit(previous)))")
+        rule = rule.replace("equal(diff_suit(previous),-1)","equal(suit(current),minus1(suit(previous)))")
+        rule = rule.replace("equal(diff_suit(previous),Positive)","greater(suit(current),suit(previous))")
+        rule = rule.replace("equal(diff_suit(previous),Negative)","less(suit(current),suit(previous))")
+        rule = rule.replace("equal(diff_value(current),1)","equal(value(current),plus1(value(previous)))")
+        rule = rule.replace("equal(diff_value(current),-1)","equal(value(current),minus1(value(previous)))")
+        rule = rule.replace("equal(diff_value(current),Positive)","greater(value(current),value(previous))")
+        rule = rule.replace("equal(diff_value(current),Negative)","less(value(current),value(previous))")
+        rule = rule.replace("equal(diff_suit(current),1)","equal(suit(current),plus1(suit(previous)))")
+        rule = rule.replace("equal(diff_suit(current),-1)","equal(suit(current),minus1(suit(previous)))")
+        rule = rule.replace("equal(diff_suit(current),Positive)","greater(suit(current),suit(previous))")
+        rule = rule.replace("equal(diff_suit(current),Negative)","less(suit(current),suit(previous))")
+
+
         return rule
 
     def process_key(self, key):
