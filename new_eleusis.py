@@ -11,13 +11,19 @@ def is_color(s):
 
 def is_value(s):
     """Test if parameter is a number or can be interpreted as a number"""
+    s = str(s)
+    # print s.isdigit() or (len(s) == 1 and s[0] in "AJQK");
     return s.isdigit() or (len(s) == 1 and s[0] in "AJQK")
 
 def is_card(s):
     """Test if parameter is a value followed by a suit"""
+    s = str(s);
+    # print s;
+    # print is_suit(s[-1]) and is_value(s[:len(s) - 1]);
     return is_suit(s[-1]) and is_value(s[:len(s) - 1])
 
 def value_to_number(name):
+
     """Given the "value" part of a card, returns its numeric value"""
     values = [None, 'A', '2', '3', '4', '5', '6',
               '7', '8', '9', '10', 'J', 'Q', 'K']
@@ -67,6 +73,9 @@ def less(a, b):
         else:
             return value(a) < value(b)
     elif is_value(a):
+    	a = number_to_value(int(a));
+    	b = number_to_value(int(b));
+
         return value_to_number(a) < value_to_number(b)
     else:
         return a < b
@@ -79,6 +88,8 @@ def plus1(x):
     """Returns the next higher value, suit, or card in a suit;
        must be one. If a color, returns the other color"""
     if is_value(x):
+    	x = number_to_value(int(x));
+    	
         assert value_to_number(x) < 13
         return number_to_value(value_to_number(x) + 1)
     elif is_suit(x):
@@ -93,6 +104,7 @@ def minus1(x):
     """Returns the next lower value, suit, or card in a suit;
        must be one. If a color, returns the other color"""
     if is_value(x):
+    	x = number_to_value(int(x));
         assert value_to_number(x) > 1
         return number_to_value(value_to_number(x) - 1)
     elif is_suit(x):
