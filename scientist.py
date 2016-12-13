@@ -25,7 +25,7 @@ import thinker
 # globals
 global min_plays
 global max_plays
-min_plays = 150
+min_plays = 20
 max_plays = 200
 card_values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
 card_suits = ['C', 'D', 'H', 'S']
@@ -61,6 +61,7 @@ def main(args):
     
         # The Player makes a move
         move_time_start = datetime.datetime.now()
+        print "Player is thinking..."
         player_play = player.scientist()
         move_time_end = datetime.datetime.now()
         if new_eleusis.is_card(player_play):
@@ -113,7 +114,8 @@ def main(args):
         name = name + " (called end of game)"
     print name
     print "Getting Player's Rule..."
-    player.get_rule()
+    if end != -1:
+        player.get_rule()
     if player.rule is None:
         print "\tRule: " + player.generate_random_rule()
         print "\n\tPlayer's Score: " + str(player.get_score(False, end == -1))
@@ -122,7 +124,7 @@ def main(args):
         print "\tRule: " + str(player.rule[0])
         print "\tEfficiency: " + str(player.rule[1][0]) + " %"
         print "\tEquivalence: " + str(player.rule[1][1]) + " %"
-        print "\tConfidence: " + str((player.rule[1][0] / 100) * (player.rule[1][1] / 100) * 100) + " %"
+        print "\tConfidence: " + str((player.rule[1][0] / 100) * (player.rule[1][1] / 100) * player.confidence * 100) + " %"
         input = ""
         while not(input == "Y" or input == "y" or input == "N" or input == "n"):
             input = raw_input("\nWas the player's rule logically equivalent? (Y/N):")
@@ -162,6 +164,7 @@ class Scientist:
         self.num_initial_cards = len(cards)
         self.rule = None
         self.rules = []
+        self.confidence = 1
         self.board = []
         self.all_cards = []
         self.build_all_cards()
@@ -318,7 +321,7 @@ class Scientist:
         try:
             correct_indeces = []
             incorrect_indeces = []
-            player_rule = new_eleusis.parse(self.get_rule())
+            player_rule = new_eleusis.parse(self.rule)
             # for all the cards in the hand, assign correct or 
             #   incorrect against the player's current rule
             for i in range(0, len(self.hand)):
@@ -426,23 +429,53 @@ class Scientist:
     #   Calculates if the player should decide success
     #   Returns true or false depending on the player needing to decide
     def decide_success(self):
+        # get the current rule and history
         current_rule = self.get_rule()
         history_length = len(self.thinker.history)
+        self.confidence = 1
+        # if there is a rule, evaluate it and see if we need to declare
         if not current_rule is None:
             try:
+                # pars the rule and get the requireed info
                 parsed_rule = new_eleusis.parse(current_rule[0])
-                #if there have been more than 20 plays
+                efficiency = current_rule[1][0]
+                equivalence = current_rule[1][1]
+                rule_length = len(current_rule[0])
+                # get the factors of the min_plays that will be used in order to decide
+                factor = [(i * min_plays) for i in range(1, 11)]
+                #if there have been more than min plays
                 if history_length >= min_plays:
                     # if the current rule has 100 efficiency and 100 equivalence
-                    if current_rule[1][0] == 100 and current_rule[1][1] == 100:
-                        return current_rule
+                    if efficiency == 100 and equivalence == 100:
+                        # if the length of the rule is less than factor[i + 2] or 
+                        #   the plays is some value with a factor[i]
+                        for i in range(0, 11):
+                            rule_length_limit = 0
+                            # if the index is less than 
+                            if i < 8:
+                                rule_length_limit = factor[i + 2]
+                            elif i == 8:
+                                rule_length_limit = factor[i + 1]
+                            else:
+                                rule_length_limit = factor[i]
+                            if rule_length <= rule_length_limit or history_length >= factor[i]:
+                                self.confidence = self.confidence * 1.0
+                                return current_rule
                     # if the current rule has 100 efficiency or 100 equivalence
-                    elif current_rule[1][0] == 100 or current_rule[1][1] == 100:
-                        return current_rule
-                    # if the current rule is not as efficient as we like, show rule if 200 plays have been made
+                    elif efficiency == 100 or equivalence == 100:
+                        # if the history is 
+                        if history_length >= factor[2] and rule_length <= factor[4]:
+                            self.confidence = self.confidence * 0.75
+                            return current_rule
+                        elif history_length >= factor[3]:
+                            self.confidence = self.confidence * 0.50
+                            return current_rule
+                    # if the current rule is not as efficient as we like, show rule if max plays have been made
                     elif history_length >= max_plays:
+                        self.confidence = self.confidence * 0.25
                         return current_rule
             except:
+                self.confidence = self.confidence * 0.0
                 if history_length >= max_plays:
                     return current_rule
         return None
@@ -494,8 +527,9 @@ class Adversary(object):
         Your scientist should play a card out of its given hand.
         """
         # Return a rule with a probability of 1/14
-        prob_list = [i for i in range(100)]
-        prob = prob_list[random.randint(0, 99)]
+        prob_range = random.randint(min_plays * 2, min_plays * 3)
+        prob_list = [i for i in range(prob_range)]
+        prob = prob_list[random.randint(0, prob_range - 1)]
         if prob == 1 and length >= min_plays:
             return self.rule
         else:
