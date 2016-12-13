@@ -35,3 +35,8 @@ We have made a few changes to the game.py file provided by the TAs and combined 
 4. Updated plus1 and minus1 code to cycle through in case of String
 5. Updated plus1 and minus1 code to remove assertion for value<13 and value>1 because once it reaches King and Ace respectively, it gives an assertion error
 6. Updated diff_suit and diff_value to return -1,+1,Positive and Negative so that can be used in creating minus1,plus1,Greater and less rules.
+
+-----------------------------------------------
+## Phase 2 Rule Creation Details :
+
+For Phase-2 of Eleusis, we are using Decomposition Algorithm to create rules by reading all the correct cards in the BoardState. Basically, Decomposition Algorithm creates rules in the IF-THEN format. This works by using a Dictionary where all the keys are list of all the attributes of the previous card and the values are all the attributes of the next CORRECT card. Then each of the attributes of the next card are generalized to avoid overfitting of the data. After generalization, we convert these mappings from their dictionary format to string format. Using the OR and AND on all such mappings, we create a list of rules and sort them on the basis of their efficiency, logical equivalence and rule-length. Efficiency is measured on all the CORRECT Cards. Logical Equivalence is measured on all the CORRECT and INCORRECT Cards. When the player is required to display his rule, he chooses the rule that is highest on efficiency, equivalence and lowest on rule length.
