@@ -25,7 +25,7 @@ import thinker
 # globals
 global min_plays
 global max_plays
-min_plays = 20
+min_plays = 150
 max_plays = 200
 card_values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
 card_suits = ['C', 'D', 'H', 'S']
@@ -209,15 +209,15 @@ class Scientist:
                 score = score - 25
         return score
         
-    #	This function will set the dealer rule using the
-    #	helper functions in new_eleusis.py.
-    #	TODO: Need to update a few things based on prof's suggestions.
+    #   This function will set the dealer rule using the
+    #   helper functions in new_eleusis.py.
+    #   TODO: Need to update a few things based on prof's suggestions.
     def set_rule(self, dealer_rule, player_rule):
         self.dealer_rule = new_eleusis.parse(dealer_rule)
 
-    # 	This function will return the current actual rule that the player is
-    #	considering and will be used to determine the score.
-    #	Returs the best rule in the list of rules
+    #   This function will return the current actual rule that the player is
+    #   considering and will be used to determine the score.
+    #   Returs the best rule in the list of rules
     def get_rule(self):
         if len(self.thinker.guessed_rules) > 0:
             self.rules = self.prioritize_rules(self.thinker.guessed_rules)
@@ -225,8 +225,8 @@ class Scientist:
             return self.rule
         return None
     
-    #	This function will create the board state in string representation
-    #	Returns string for the board
+    #   This function will create the board state in string representation
+    #   Returns string for the board
     def board_state(self):
         board = "{\n"
         for card in self.board:
@@ -235,9 +235,9 @@ class Scientist:
         board = board + "}"
         return board
 
-    #	This function will play a card and determine if it satisfies the rule.
-    #	This also updates the board_state.
-    #	Returns true or false
+    #   This function will play a card and determine if it satisfies the rule.
+    #   This also updates the board_state.
+    #   Returns true or false
     def play(self, card):
         if len(self.board) >= self.num_initial_cards:
             self.thinker.playNext(thinker.Card(card[:-1], card[-1]))
@@ -253,8 +253,8 @@ class Scientist:
             self.board.append((card, []))
             return True
 
-    #	This function handles the player which will determine when and what to play
-    #	and choosing when to declare success.
+    #   This function handles the player which will determine when and what to play
+    #   and choosing when to declare success.
     def scientist(self):
         card = self.get_best_card()
         result = self.decide_success()
@@ -310,9 +310,9 @@ class Scientist:
         last_three.append(card)
         return last_three
 
-    #	Based on the current possible rules, decides the best card to play.
-    #	Applies constrainsts at this stage.
-    #	Returns the card to play.
+    #   Based on the current possible rules, decides the best card to play.
+    #   Applies constrainsts at this stage.
+    #   Returns the card to play.
     def get_best_card(self):
         index = -1
         try:
@@ -364,18 +364,18 @@ class Scientist:
         rule += cond + "(" + prop + "(current), " + prop + "(previous)), "
         return rule[:-2]+")"
 
-    #	Generates rules that apply to the current state of the board. 
-    #	Only a decent amount will be chosen sicne there could be infinute possible rules.
-    #	Applies constraints at this stage.
-    # 	TODO: Infer Rules
+    #   Generates rules that apply to the current state of the board. 
+    #   Only a decent amount will be chosen sicne there could be infinute possible rules.
+    #   Applies constraints at this stage.
+    #   TODO: Infer Rules
     def generate_rules(self):
         correct_rules = []
         return correct_rules
 
 
-    #	Sets priority to all the rules that are being considered currently.
-    #	Uses a list of rules that contain the attribute: evaluation
-    #	Returns the sorted list of rules.
+    #   Sets priority to all the rules that are being considered currently.
+    #   Uses a list of rules that contain the attribute: evaluation
+    #   Returns the sorted list of rules.
     def prioritize_rules(self, rules):
         evaluation = []
         for rule in rules:
@@ -388,7 +388,7 @@ class Scientist:
                 evaluation.append((rule, (efficiency, equivalence)))
             except:
                 evaluation.append((rule, (efficiency, equivalence)))
-        return sorted(evaluation, key = lambda tuple: (tuple[1][0], -(len(tuple[0])), tuple[1][1]))
+        return sorted(evaluation, key = lambda tuple: (tuple[1][0], tuple[1][1], -(len(tuple[0]))))
 
 
     # Gets the efficiency of a provided rule for all the correct cards.
@@ -423,8 +423,8 @@ class Scientist:
         return (match / float(total)) * 100
 
 
-    #	Calculates if the player should decide success
-    #	Returns true or false depending on the player needing to decide
+    #   Calculates if the player should decide success
+    #   Returns true or false depending on the player needing to decide
     def decide_success(self):
         current_rule = self.get_rule()
         history_length = len(self.thinker.history)
@@ -448,15 +448,15 @@ class Scientist:
         return None
 
 
-    #	Builds the list of all possible cards
+    #   Builds the list of all possible cards
     def build_all_cards(self):
         for value in card_values:
             for suit in card_suits:
                 self.all_cards.append(value + suit)
 
 
-    #	Gets a to play from the hand
-    #	Returns a card.
+    #   Gets a to play from the hand
+    #   Returns a card.
     def get_card_from_hand(self, index):
         if index < 0 or index > 13:
             #get a random card
