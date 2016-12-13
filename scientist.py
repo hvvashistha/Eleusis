@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Project Phase 1
+# Project Phase 2
 # CMSC 671
 
 #   Sabin Raj Tiwari
@@ -124,7 +124,10 @@ def main(args):
         print "\tRule: " + str(player.rule[0])
         print "\tEfficiency: " + str(player.rule[1][0]) + " %"
         print "\tEquivalence: " + str(player.rule[1][1]) + " %"
-        print "\tConfidence: " + str((player.rule[1][0] / 100) * (player.rule[1][1] / 100) * player.confidence * 100) + " %"
+        confidence_param = 100
+        if player.rule[1][1] < 100.0:
+            confidence_param = 100 - player.rule[1][1]
+        print "\tConfidence: " + str((player.rule[1][0] / 100) * (player.rule[1][1] / 100) * (confidence_param / 100) * player.confidence * 100) + " %"
         input = ""
         while not(input == "Y" or input == "y" or input == "N" or input == "n"):
             input = raw_input("\nWas the player's rule logically equivalent? (Y/N):")
@@ -259,8 +262,8 @@ class Scientist:
     #   This function handles the player which will determine when and what to play
     #   and choosing when to declare success.
     def scientist(self):
-        card = self.get_best_card()
         result = self.decide_success()
+        card = self.get_best_card()
         if (result is not None) or len(self.thinker.history) >= max_plays:
             return result[0]
         correct = self.play(card)
@@ -321,12 +324,12 @@ class Scientist:
         try:
             correct_indeces = []
             incorrect_indeces = []
-            player_rule = new_eleusis.parse(self.rule)
+            player_rule = new_eleusis.parse(self.rule[0])
             # for all the cards in the hand, assign correct or 
             #   incorrect against the player's current rule
             for i in range(0, len(self.hand)):
-                last_three = get_last_three(self.hand[i], self.board, -1)
-                if evaluate_card(last_three, player_rule):
+                last_three = self.get_last_three(self.hand[i], self.board, -1)
+                if self.evaluate_card(last_three, player_rule):
                     correct_indeces.append(i)
                 else:
                     incorrect_indeces.append(i)
@@ -335,16 +338,23 @@ class Scientist:
                 self.last_play_positive = False
                 # if there are incorrect cards in the hand
                 if len(incorrect_indeces) > 0:
-                    index = incorrect_indeces[int(round(random.random() * (len(self.incorrect_indeces) - 1)))]
+                    index = incorrect_indeces[random.randint(0, len(incorrect_indeces) - 1)]
+                    for i in range(0, len(incorrect_indeces)):
+                        if self.hand[index] in self.board[-1][1]:
+                            index = incorrect_indeces[random.randint(0, len(incorrect_indeces) - 1)]
+                        else:
+                            break
+                    if self.hand[index] in self.board[-1][1]:
+                        index = correct_indeces[random.randint(0, len(correct_indeces) - 1)]
                 else:
-                    index = correct_indeces[int(round(random.random() * (len(self.correct_indeces) - 1)))]
+                    index = correct_indeces[random.randint(0, len(correct_indeces) - 1)]
             else:
                 self.last_play_positive = True
                  # if there are correct cards in the hand
                 if len(correct_indeces) > 0:
-                    index = correct_indeces[int(round(random.random() * (len(self.correct_indeces) - 1)))]
+                    index = correct_indeces[random.randint(0, len(correct_indeces) - 1)]
                 else:
-                    index = incorrect_indeces[int(round(random.random() * (len(self.incorrect_indeces) - 1)))]
+                    index = incorrect_indeces[random.randint(0, len(incorrect_indeces) - 1)]
         except:
             # if the rule evaluation fails
             index = -1
@@ -451,14 +461,21 @@ class Scientist:
                         #   the plays is some value with a factor[i]
                         for i in range(0, 11):
                             rule_length_limit = 0
-                            # if the index is less than 
-                            if i < 8:
+                            factor_limit = 0
+                            # if the index is less than 7
+                            if i < 7:
+                                factor_limit = factor[i + 2]
+                                rule_length_limit = factor[i + 3]
+                            elif i == 7:
+                                factor_limit = factor[i + 1]
                                 rule_length_limit = factor[i + 2]
                             elif i == 8:
+                                factor_limit = factor[i + 1]
                                 rule_length_limit = factor[i + 1]
                             else:
+                                factor_limit = factor[i]
                                 rule_length_limit = factor[i]
-                            if rule_length <= rule_length_limit or history_length >= factor[i]:
+                            if rule_length <= rule_length_limit or history_length >= factor_limit:
                                 self.confidence = self.confidence * 1.0
                                 return current_rule
                     # if the current rule has 100 efficiency or 100 equivalence
