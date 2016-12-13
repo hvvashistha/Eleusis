@@ -55,10 +55,6 @@ Current Card odd or with color Red
 
 python scientist.py 3D or(odd(current),equal(color(current),R))
 ======================================================================================================================================================
-Rule with diff_suit	
-
-python scientist.py 2D equal(diff_suit(current,previous),1)
-======================================================================================================================================================
 Rule with plus 1 suit	
 
 python scientist.py 2D equal(plus1(suit(previous)),suit(current))
@@ -66,3 +62,17 @@ python scientist.py 2D equal(plus1(suit(previous)),suit(current))
 Rule with greater and less	
 
 python scientist.py 2S if(not(is_royal(previous)),greater(value(current)),less(value(current)))
+======================================================================================================================================================
+Rule with plus 1 value
+
+python scientist.py 6D equal(value(current),plus1(value(previous)))
+======================================================================================================================================================
+Rule with minus 1 value
+
+python scientist.py KD equal(value(current),minus1(value(previous)))
+======================================================================================================================================================
+Rule with less value
+
+python scientist.py 8D less(value(current),value(previous))
+======================================================================================================================================================
+
