@@ -50,7 +50,7 @@ def value(card):
     prefix = card[:len(card) - 1]
     names = {'A':1, 'J':11, 'Q':12, 'K':13}
     if prefix in names:
-        return names.get(prefix)
+        return int(names.get(prefix))
     else:
         return int(prefix)
 
@@ -88,12 +88,13 @@ def plus1(x):
     """Returns the next higher value, suit, or card in a suit;
        must be one. If a color, returns the other color"""
     if is_value(x):
-    	x = number_to_value(int(x));
+        z = value_to_number(number_to_value(x))
     	
-        assert value_to_number(x) < 13
-        return number_to_value(value_to_number(x) + 1)
+    
+        return x+1;
     elif is_suit(x):
-        assert x != 'S'
+        if x == 'S':
+            return 'C'
         return "CDHS"["CDHS".index(x) + 1]
     elif is_card(x):
         return number_to_value(value(x) + 1) + suit(x)
@@ -104,11 +105,12 @@ def minus1(x):
     """Returns the next lower value, suit, or card in a suit;
        must be one. If a color, returns the other color"""
     if is_value(x):
-    	x = number_to_value(int(x));
-        assert value_to_number(x) > 1
-        return number_to_value(value_to_number(x) - 1)
+        z = value_to_number(number_to_value(x))
+
+        return x-1;
     elif is_suit(x):
-        assert x != 'C'
+        if x == 'C':
+            return 'S';
         return "CDHS"["CDHS".index(x) - 1]
     elif is_card(x):
         return number_to_value(value(x) - 1) + suit(x)
@@ -314,7 +316,7 @@ class Tree:
                 else:
                     return subeval(self.right)
         except Exception as e:
-            print e
-            print "Expression = ", self
-            print " with cards =", cards
+            # print e
+            # # print "Expression = ", self
+            # # print " with cards =", cards
             raise
